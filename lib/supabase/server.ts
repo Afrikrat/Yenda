@@ -41,6 +41,29 @@ export function createServerSupabaseClientWithCookies(cookieStore: {
   })
 }
 
-// Create a singleton instance for server-side usage
-// This is the missing export that was causing the deployment error
-export const supabase = createServerSupabaseClient()
+// For API routes and other contexts where cookies() can't be used at the module level
+export async function createSupabaseServerClientForAPI(request: Request) {
+  const cookieHeader = request.headers.get("cookie") || ""
+  const cookies = Object.fromEntries(
+    cookieHeader.split(";").map((cookie) => {
+      const [key, ...value] = cookie.split("=")
+      return [key.trim(), value.join("=")]
+    }),
+  )
+
+  return createServerClient<Database>(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!, {
+    cookies: {
+      get(name: string) {
+        return cookies[name]
+      },
+      set(name: string, value: string) {
+        // This is a read-only client for API routes
+      },
+      remove(name: string) {
+        // This is a read-only client for API routes
+      },
+    },
+  })
+}
+
+// REMOVED: export const supabase = createServerSupabaseClient()

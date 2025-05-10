@@ -5,6 +5,7 @@ import FeaturedEventsCarousel from "@/components/featured-events-carousel"
 import { createServerSupabaseClient } from "@/lib/supabase/server"
 
 export default async function HomePage() {
+  // Create the Supabase client inside the component function
   const supabase = createServerSupabaseClient()
 
   // Fetch events from Supabase

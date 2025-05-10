@@ -1,7 +1,7 @@
 "use client"
 
 import { Button } from "@/components/ui/button"
-import { BookOpen, Calendar, Tag, PlusCircle, Trash2, Film, Eye, Edit } from "lucide-react"
+import { BookOpen, Calendar, Tag, PlusCircle, Trash2, Film, Eye, Edit, Activity } from "lucide-react"
 import Link from "next/link"
 import { useState, useEffect } from "react"
 import { useToast } from "@/components/ui/use-toast"
@@ -228,6 +228,16 @@ export default function AdminPage() {
   return (
     <main className="container mx-auto px-4 py-8">
       <h1 className="text-3xl font-bold mb-8 text-center">Admin Dashboard</h1>
+
+      {/* Health Monitor Button - Prominently displayed at the top */}
+      <div className="mb-8 flex justify-center">
+        <Link href="/admin/health">
+          <Button className="bg-[#b0468e] hover:bg-[#b0468e]/90 text-white px-6 py-2 text-lg flex items-center gap-2">
+            <Activity className="h-5 w-5" />
+            System Health Monitor
+          </Button>
+        </Link>
+      </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
         <Card>
@@ -866,7 +876,7 @@ export default function AdminPage() {
         </TabsContent>
       </Tabs>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-8">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mt-8">
         {/* Events Management */}
         <div className="bg-white rounded-lg shadow-md p-6 border border-gray-200">
           <div className="flex items-center mb-4">
@@ -928,6 +938,28 @@ export default function AdminPage() {
             <Link href="/stories">
               <Button variant="outline" className="w-full">
                 View Stories
+              </Button>
+            </Link>
+          </div>
+        </div>
+
+        {/* System Health */}
+        <div className="bg-white rounded-lg shadow-md p-6 border border-gray-200">
+          <div className="flex items-center mb-4">
+            <Activity className="h-6 w-6 mr-2 text-[#b0468e]" />
+            <h2 className="text-xl font-semibold">System Health</h2>
+          </div>
+          <p className="text-gray-600 mb-4">Monitor system health, performance metrics, and diagnostics.</p>
+          <div className="flex flex-col space-y-2">
+            <Link href="/admin/health">
+              <Button className="w-full bg-[#b0468e] hover:bg-[#b0468e]/90">
+                <Activity className="h-4 w-4 mr-2" />
+                Health Monitor
+              </Button>
+            </Link>
+            <Link href="/admin/clear-data">
+              <Button variant="outline" className="w-full">
+                Clear Demo Data
               </Button>
             </Link>
           </div>

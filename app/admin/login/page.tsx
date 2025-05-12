@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { supabase } from "@/lib/supabase/client"
 import { useToast } from "@/components/ui/use-toast"
@@ -19,25 +19,61 @@ export default function AdminLoginPage() {
   const router = useRouter()
   const { toast } = useToast()
 
+  // Check if already logged in
+  useEffect(() => {
+    const checkSession = async () => {
+      const { data } = await supabase.auth.getSession()
+      if (data.session) {
+        // Check if admin
+        const { data: profileData } = await supabase
+          .from("profiles")
+          .select("role")
+          .eq("id", data.session.user.id)
+          .single()
+
+        if (profileData?.role === "admin") {
+          router.push("/admin")
+        }
+      }
+    }
+
+    checkSession()
+  }, [router])
+
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsLoading(true)
 
     try {
-      const { error } = await supabase.auth.signInWithPassword({
+      const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
       })
 
       if (error) throw error
 
+      // Check if the user is an admin
+      const { data: profileData, error: profileError } = await supabase
+        .from("profiles")
+        .select("role")
+        .eq("id", data.user.id)
+        .single()
+
+      if (profileError) throw profileError
+
+      if (profileData.role !== "admin") {
+        // Sign out if not admin
+        await supabase.auth.signOut()
+        throw new Error("You don't have permission to access the admin area.")
+      }
+
       toast({
         title: "Login successful",
         description: "Welcome to Yenda Admin Dashboard",
       })
 
-      router.push("/admin")
-      router.refresh()
+      // Force a hard navigation to refresh the page
+      window.location.href = "/admin"
     } catch (error: any) {
       toast({
         title: "Login failed",

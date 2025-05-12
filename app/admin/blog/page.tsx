@@ -25,7 +25,7 @@ interface BlogPost {
   id: string
   title: string
   slug: string
-  date: string
+  created_at: string // Changed from date to created_at
   status: string
   image_url: string | null
   excerpt: string | null
@@ -52,8 +52,8 @@ export default function AdminBlogPage() {
     try {
       const { data, error } = await supabase
         .from("blog_posts")
-        .select("id, title, slug, date, status, image_url, excerpt")
-        .order("date", { ascending: false })
+        .select("id, title, slug, created_at, status, image_url, excerpt") // Changed from date to created_at
+        .order("created_at", { ascending: false }) // Changed from date to created_at
 
       if (error) throw error
       setPosts(data || [])
@@ -112,6 +112,28 @@ export default function AdminBlogPage() {
     }
   }
 
+  const handleDeleteAllPosts = async () => {
+    try {
+      const { error } = await supabase.from("blog_posts").delete().not("id", "eq", "placeholder")
+      if (error) throw error
+
+      toast({
+        title: "All blog posts deleted",
+        description: "All blog posts have been successfully deleted.",
+      })
+
+      // Refresh posts list
+      fetchPosts()
+    } catch (error: any) {
+      console.error("Error deleting all blog posts:", error)
+      toast({
+        title: "Error",
+        description: error.message || "Failed to delete all blog posts. Please try again.",
+        variant: "destructive",
+      })
+    }
+  }
+
   return (
     <main className="container px-4 py-6 mx-auto">
       <div className="flex items-center justify-between mb-6">
@@ -123,12 +145,33 @@ export default function AdminBlogPage() {
           </Link>
           <h1 className="text-2xl font-bold">All Blog Posts</h1>
         </div>
-        <Link href="/admin/blog/new">
-          <Button className="bg-[#b0468e] text-white hover:opacity-90 transition-opacity">
-            <Plus className="h-4 w-4 mr-2" />
-            Add New Post
-          </Button>
-        </Link>
+        <div className="flex gap-2">
+          <Dialog>
+            <DialogTrigger asChild>
+              <Button variant="destructive">Delete All Posts</Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Delete All Blog Posts</DialogTitle>
+                <DialogDescription>
+                  Are you sure you want to delete ALL blog posts? This action cannot be undone.
+                </DialogDescription>
+              </DialogHeader>
+              <DialogFooter>
+                <Button variant="outline">Cancel</Button>
+                <Button variant="destructive" onClick={handleDeleteAllPosts}>
+                  Delete All
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+          <Link href="/admin/blog/new">
+            <Button className="bg-[#b0468e] text-white hover:opacity-90 transition-opacity">
+              <Plus className="h-4 w-4 mr-2" />
+              Add New Post
+            </Button>
+          </Link>
+        </div>
       </div>
 
       <Card className="mb-6">
@@ -215,7 +258,7 @@ export default function AdminBlogPage() {
                       </div>
                     </td>
                     <td className="p-4 align-middle">
-                      {new Date(post.date).toLocaleDateString("en-US", {
+                      {new Date(post.created_at).toLocaleDateString("en-US", {
                         month: "short",
                         day: "numeric",
                         year: "numeric",

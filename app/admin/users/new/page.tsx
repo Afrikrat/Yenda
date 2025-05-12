@@ -6,13 +6,15 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { ArrowLeft, Loader2 } from "lucide-react"
+import { AlertCircle, ArrowLeft, Loader2 } from "lucide-react"
 import Link from "next/link"
 import { useState } from "react"
-import { supabase, refreshToken } from "@/lib/supabase/client"
+import { supabase } from "@/lib/supabase/client"
 import { useToast } from "@/components/ui/use-toast"
 import { useRouter } from "next/navigation"
 import MediaUpload from "@/components/media-upload"
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 
 export default function NewUserPage() {
   const [fullName, setFullName] = useState("")
@@ -20,6 +22,7 @@ export default function NewUserPage() {
   const [password, setPassword] = useState("")
   const [phone, setPhone] = useState("")
   const [avatarUrl, setAvatarUrl] = useState("")
+  const [role, setRole] = useState("user") // Default to regular user
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const { toast } = useToast()
@@ -36,10 +39,7 @@ export default function NewUserPage() {
 
     setIsSubmitting(true)
     try {
-      // Try to refresh the token first to ensure we have a valid session
-      await refreshToken()
-
-      // Create user in auth
+      // Create user with the Supabase API
       const { data: authData, error: authError } = await supabase.auth.admin.createUser({
         email,
         password,
@@ -58,6 +58,7 @@ export default function NewUserPage() {
           full_name: fullName,
           phone,
           avatar_url: avatarUrl,
+          role: role, // Set the role
         })
 
         if (profileError) {
@@ -109,11 +110,15 @@ export default function NewUserPage() {
               <CardDescription>Add a new user to your application.</CardDescription>
             </CardHeader>
             <CardContent>
-              <form onSubmit={handleSubmit} className="space-y-6">
-                {error && (
-                  <div className="p-3 bg-red-50 border border-red-200 rounded-md text-red-600 text-sm">{error}</div>
-                )}
+              {error && (
+                <Alert variant="destructive" className="mb-4">
+                  <AlertCircle className="h-4 w-4" />
+                  <AlertTitle>Error</AlertTitle>
+                  <AlertDescription>{error}</AlertDescription>
+                </Alert>
+              )}
 
+              <form onSubmit={handleSubmit} className="space-y-6">
                 <div className="space-y-4">
                   <div className="space-y-2">
                     <Label htmlFor="fullName">Full Name</Label>
@@ -148,6 +153,19 @@ export default function NewUserPage() {
                       required
                     />
                     <p className="text-xs text-muted-foreground">Password must be at least 6 characters long.</p>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="role">Role</Label>
+                    <Select value={role} onValueChange={setRole}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select a role" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="user">Regular User</SelectItem>
+                        <SelectItem value="admin">Administrator</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </div>
 
                   <div className="space-y-2">

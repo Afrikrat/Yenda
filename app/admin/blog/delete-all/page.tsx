@@ -3,11 +3,11 @@
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { deleteAllBlogPosts } from "@/app/actions/delete-blog-posts"
+import { deleteAllBlogPosts } from "@/app/actions/delete-all-blog-posts"
 import { useToast } from "@/components/ui/use-toast"
-import { useRouter } from "next/navigation"
-import { AlertTriangle } from "lucide-react"
+import { ArrowLeft, Trash2 } from "lucide-react"
 import Link from "next/link"
+import { useRouter } from "next/navigation"
 
 export default function DeleteAllBlogPostsPage() {
   const [isDeleting, setIsDeleting] = useState(false)
@@ -24,6 +24,7 @@ export default function DeleteAllBlogPostsPage() {
           title: "Success",
           description: result.message,
         })
+        // Redirect to blog admin page after successful deletion
         router.push("/admin/blog")
       } else {
         toast({
@@ -32,11 +33,10 @@ export default function DeleteAllBlogPostsPage() {
           variant: "destructive",
         })
       }
-    } catch (error) {
-      console.error("Error deleting blog posts:", error)
+    } catch (error: any) {
       toast({
         title: "Error",
-        description: "An unexpected error occurred. Please try again.",
+        description: error.message || "An error occurred while deleting blog posts.",
         variant: "destructive",
       })
     } finally {
@@ -45,36 +45,57 @@ export default function DeleteAllBlogPostsPage() {
   }
 
   return (
-    <div className="container mx-auto py-10 px-4">
+    <main className="container px-4 py-6 mx-auto">
+      <div className="flex items-center gap-2 mb-6">
+        <Link href="/admin/blog">
+          <Button variant="outline" size="icon">
+            <ArrowLeft className="h-4 w-4" />
+          </Button>
+        </Link>
+        <h1 className="text-2xl font-bold">Delete All Blog Posts</h1>
+      </div>
+
       <Card className="max-w-md mx-auto">
         <CardHeader>
-          <CardTitle className="text-center text-red-600 flex items-center justify-center gap-2">
-            <AlertTriangle className="h-6 w-6" />
-            Delete All Blog Posts
-          </CardTitle>
+          <CardTitle className="text-center text-red-600">Warning: Destructive Action</CardTitle>
           <CardDescription className="text-center">
-            This action will permanently delete all blog posts. This cannot be undone.
+            This will permanently delete ALL blog posts from the database.
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="bg-red-50 p-4 rounded-md border border-red-200 mb-4">
-            <p className="text-red-700 text-sm">
-              Warning: You are about to delete all blog posts from the database. This action is permanent and cannot be
-              reversed. Make sure you have a backup if you need this data in the future.
-            </p>
-          </div>
+          <p className="mb-4">
+            Are you absolutely sure you want to delete all blog posts? This action cannot be undone and will remove all
+            blog content from your site.
+          </p>
+          <p className="text-sm text-muted-foreground">
+            If you only want to delete specific posts, please go back to the blog admin page and delete them
+            individually.
+          </p>
         </CardContent>
-        <CardFooter className="flex flex-col gap-2">
-          <Button variant="destructive" className="w-full" onClick={handleDeleteAll} disabled={isDeleting}>
-            {isDeleting ? "Deleting..." : "Yes, Delete All Blog Posts"}
-          </Button>
-          <Link href="/admin/blog" className="w-full">
-            <Button variant="outline" className="w-full">
-              Cancel
-            </Button>
+        <CardFooter className="flex justify-between">
+          <Link href="/admin/blog">
+            <Button variant="outline">Cancel</Button>
           </Link>
+          <Button
+            variant="destructive"
+            onClick={handleDeleteAll}
+            disabled={isDeleting}
+            className="flex items-center gap-2"
+          >
+            {isDeleting ? (
+              <>
+                <div className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full" />
+                Deleting...
+              </>
+            ) : (
+              <>
+                <Trash2 className="h-4 w-4" />
+                Delete All Blog Posts
+              </>
+            )}
+          </Button>
         </CardFooter>
       </Card>
-    </div>
+    </main>
   )
 }

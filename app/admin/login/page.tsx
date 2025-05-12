@@ -11,46 +11,67 @@ import { useRouter } from "next/navigation"
 import { supabase } from "@/lib/supabase/client"
 import { useToast } from "@/components/ui/use-toast"
 import Image from "next/image"
+import { AlertCircle, Loader2 } from "lucide-react"
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 
 export default function AdminLoginPage() {
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
   const router = useRouter()
   const { toast } = useToast()
 
   // Check if already logged in
   useEffect(() => {
     const checkSession = async () => {
-      const { data } = await supabase.auth.getSession()
-      if (data.session) {
-        // Check if admin
-        const { data: profileData } = await supabase
-          .from("profiles")
-          .select("role")
-          .eq("id", data.session.user.id)
-          .single()
+      try {
+        const { data } = await supabase.auth.getSession()
+        if (data.session) {
+          // Check if admin
+          const { data: profileData, error: profileError } = await supabase
+            .from("profiles")
+            .select("role")
+            .eq("id", data.session.user.id)
+            .single()
 
-        if (profileData?.role === "admin") {
-          router.push("/admin")
+          if (profileError) {
+            console.error("Error checking profile:", profileError)
+            return
+          }
+
+          if (profileData?.role === "admin") {
+            window.location.href = "/admin"
+          }
         }
+      } catch (err) {
+        console.error("Error checking session:", err)
       }
     }
 
     checkSession()
-  }, [router])
+  }, [])
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsLoading(true)
+    setError(null)
 
     try {
-      const { data, error } = await supabase.auth.signInWithPassword({
+      const { data, error: authError } = await supabase.auth.signInWithPassword({
         email,
         password,
       })
 
-      if (error) throw error
+      if (authError) {
+        setError(authError.message)
+        return
+      }
+
+      if (!data.user) {
+        setError("Login failed. Please try again.")
+        return
+      }
 
       // Check if the user is an admin
       const { data: profileData, error: profileError } = await supabase
@@ -59,12 +80,16 @@ export default function AdminLoginPage() {
         .eq("id", data.user.id)
         .single()
 
-      if (profileError) throw profileError
+      if (profileError) {
+        setError(profileError.message)
+        return
+      }
 
-      if (profileData.role !== "admin") {
+      if (profileData?.role !== "admin") {
         // Sign out if not admin
         await supabase.auth.signOut()
-        throw new Error("You don't have permission to access the admin area.")
+        setError("You don't have permission to access the admin area.")
+        return
       }
 
       toast({
@@ -75,11 +100,7 @@ export default function AdminLoginPage() {
       // Force a hard navigation to refresh the page
       window.location.href = "/admin"
     } catch (error: any) {
-      toast({
-        title: "Login failed",
-        description: error.message || "Please check your credentials and try again.",
-        variant: "destructive",
-      })
+      setError(error.message || "An unexpected error occurred. Please try again.")
     } finally {
       setIsLoading(false)
     }
@@ -96,6 +117,13 @@ export default function AdminLoginPage() {
           <CardDescription className="text-center">Enter your credentials to access the admin panel</CardDescription>
         </CardHeader>
         <CardContent>
+          {error && (
+            <Alert variant="destructive" className="mb-4">
+              <AlertCircle className="h-4 w-4" />
+              <AlertTitle>Error</AlertTitle>
+              <AlertDescription>{error}</AlertDescription>
+            </Alert>
+          )}
           <form onSubmit={handleLogin} className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
@@ -131,7 +159,14 @@ export default function AdminLoginPage() {
             onClick={handleLogin}
             disabled={isLoading}
           >
-            {isLoading ? "Signing in..." : "Sign In"}
+            {isLoading ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Signing in...
+              </>
+            ) : (
+              "Sign In"
+            )}
           </Button>
         </CardFooter>
       </Card>

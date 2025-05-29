@@ -14,6 +14,9 @@ import Image from "next/image"
 import { AlertCircle, Loader2 } from "lucide-react"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 
+// List of admin emails - add your admin email here
+const ADMIN_EMAILS = ["admin@example.com", "admin@yenda.com"]
+
 export default function AdminLoginPage() {
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
@@ -28,19 +31,8 @@ export default function AdminLoginPage() {
       try {
         const { data } = await supabase.auth.getSession()
         if (data.session) {
-          // Check if admin
-          const { data: profileData, error: profileError } = await supabase
-            .from("profiles")
-            .select("role")
-            .eq("id", data.session.user.id)
-            .single()
-
-          if (profileError) {
-            console.error("Error checking profile:", profileError)
-            return
-          }
-
-          if (profileData?.role === "admin") {
+          // Check if admin by email
+          if (ADMIN_EMAILS.includes(data.session.user.email || "")) {
             window.location.href = "/admin"
           }
         }
@@ -73,19 +65,8 @@ export default function AdminLoginPage() {
         return
       }
 
-      // Check if the user is an admin
-      const { data: profileData, error: profileError } = await supabase
-        .from("profiles")
-        .select("role")
-        .eq("id", data.user.id)
-        .single()
-
-      if (profileError) {
-        setError(profileError.message)
-        return
-      }
-
-      if (profileData?.role !== "admin") {
+      // Check if the user is an admin by email
+      if (!ADMIN_EMAILS.includes(data.user.email || "")) {
         // Sign out if not admin
         await supabase.auth.signOut()
         setError("You don't have permission to access the admin area.")

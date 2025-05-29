@@ -9,12 +9,13 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Switch } from "@/components/ui/switch"
-import { ArrowLeft, Calendar, ImageIcon, Upload } from "lucide-react"
+import { ArrowLeft, Calendar, ImageIcon, Upload, AlertCircle } from "lucide-react"
 import Link from "next/link"
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { supabase } from "@/lib/supabase/client"
 import { useToast } from "@/components/ui/use-toast"
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import slugify from "slugify"
 
 export default function NewBlogPostPage() {
@@ -27,6 +28,7 @@ export default function NewBlogPostPage() {
   const [status, setStatus] = useState("draft")
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   const router = useRouter()
   const { toast } = useToast()
 
@@ -38,19 +40,15 @@ export default function NewBlogPostPage() {
         const { error } = await supabase.from("blog_posts").select("id").limit(1)
         if (error) throw error
         setIsLoading(false)
-      } catch (error) {
+      } catch (error: any) {
         console.error("Error connecting to Supabase:", error)
-        toast({
-          title: "Connection Error",
-          description: "Could not connect to the database. Please try again later.",
-          variant: "destructive",
-        })
+        setError(error.message || "Could not connect to the database")
         setIsLoading(false)
       }
     }
 
     checkConnection()
-  }, [toast])
+  }, [])
 
   const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newTitle = e.target.value
@@ -58,47 +56,78 @@ export default function NewBlogPostPage() {
     setSlug(slugify(newTitle, { lower: true, strict: true }))
   }
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
+  const handleSubmit = async (submitStatus: string) => {
     setIsSubmitting(true)
+    setError(null)
 
     try {
+      // Validate required fields
+      if (!title.trim()) {
+        throw new Error("Title is required")
+      }
+      if (!slug.trim()) {
+        throw new Error("Slug is required")
+      }
+
       const now = new Date().toISOString()
 
-      // Remove the date field which doesn't exist in the schema
+      // Log the data we're trying to insert
+      console.log("Inserting blog post:", {
+        title: title.trim(),
+        slug: slug.trim(),
+        excerpt: excerpt.trim() || null,
+        content: content.trim() || null,
+        author: author.trim() || null,
+        image_url: imageUrl.trim() || null,
+        status: submitStatus,
+        created_at: now,
+        updated_at: now,
+      })
+
+      // Insert the blog post
       const { data, error } = await supabase
         .from("blog_posts")
         .insert({
-          title,
-          slug,
-          excerpt,
-          content,
-          author,
-          image_url: imageUrl || null,
-          status,
+          title: title.trim(),
+          slug: slug.trim(),
+          excerpt: excerpt.trim() || null,
+          content: content.trim() || null,
+          author: author.trim() || null,
+          image_url: imageUrl.trim() || null,
+          status: submitStatus,
           created_at: now,
           updated_at: now,
         })
         .select()
 
-      if (error) throw error
+      if (error) {
+        console.error("Error inserting blog post:", error)
+        throw error
+      }
+
+      console.log("Blog post created:", data)
 
       toast({
         title: "Blog post created",
-        description: status === "published" ? "Your post has been published." : "Your post has been saved as a draft.",
+        description:
+          submitStatus === "published" ? "Your post has been published." : "Your post has been saved as a draft.",
       })
 
-      router.push("/admin")
+      router.push("/admin/blog")
     } catch (error: any) {
       console.error("Error creating blog post:", error)
-      toast({
-        title: "Error",
-        description: error.message || "Failed to create blog post. Please try again.",
-        variant: "destructive",
-      })
+      setError(error.message || "Failed to create blog post. Please try again.")
     } finally {
       setIsSubmitting(false)
     }
+  }
+
+  const handleSaveAsDraft = () => {
+    handleSubmit("draft")
+  }
+
+  const handlePublish = () => {
+    handleSubmit("published")
   }
 
   return (
@@ -106,7 +135,7 @@ export default function NewBlogPostPage() {
       <header className="sticky top-0 z-40 w-full bg-white/80 dark:bg-gray-900/80 backdrop-blur-md border-b border-gray-200 dark:border-gray-800">
         <div className="container flex items-center justify-between h-16 px-4 mx-auto">
           <div className="flex items-center gap-2">
-            <Link href="/admin">
+            <Link href="/admin/blog">
               <Button variant="ghost" size="icon" className="mr-2">
                 <ArrowLeft className="h-5 w-5" />
                 <span className="sr-only">Back</span>
@@ -115,25 +144,15 @@ export default function NewBlogPostPage() {
             <span className="text-xl font-bold">Create New Blog Post</span>
           </div>
           <div className="flex items-center gap-2">
-            <Button
-              variant="outline"
-              onClick={() => {
-                setStatus("draft")
-                handleSubmit(new Event("submit") as any)
-              }}
-              disabled={isSubmitting || isLoading}
-            >
-              Save as Draft
+            <Button variant="outline" onClick={handleSaveAsDraft} disabled={isSubmitting || isLoading}>
+              {isSubmitting && status === "draft" ? "Saving..." : "Save as Draft"}
             </Button>
             <Button
               className="bg-[#b0468e] text-white hover:opacity-90 transition-opacity"
-              onClick={() => {
-                setStatus("published")
-                handleSubmit(new Event("submit") as any)
-              }}
+              onClick={handlePublish}
               disabled={isSubmitting || isLoading}
             >
-              {isSubmitting ? "Publishing..." : "Publish Post"}
+              {isSubmitting && status === "published" ? "Publishing..." : "Publish Post"}
             </Button>
           </div>
         </div>
@@ -148,6 +167,14 @@ export default function NewBlogPostPage() {
         </div>
       ) : (
         <div className="container px-4 py-6 mx-auto">
+          {error && (
+            <Alert variant="destructive" className="mb-6">
+              <AlertCircle className="h-4 w-4" />
+              <AlertTitle>Error</AlertTitle>
+              <AlertDescription>{error}</AlertDescription>
+            </Alert>
+          )}
+
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div className="md:col-span-2 space-y-6">
               <Card>
@@ -157,12 +184,12 @@ export default function NewBlogPostPage() {
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="space-y-2">
-                    <Label htmlFor="title">Post Title</Label>
+                    <Label htmlFor="title">Post Title *</Label>
                     <Input id="title" placeholder="Enter post title" value={title} onChange={handleTitleChange} />
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="slug">Slug</Label>
+                    <Label htmlFor="slug">Slug *</Label>
                     <Input
                       id="slug"
                       placeholder="post-url-slug"
@@ -294,13 +321,10 @@ export default function NewBlogPostPage() {
                 <CardFooter>
                   <Button
                     className="w-full bg-[#b0468e] text-white hover:opacity-90 transition-opacity"
-                    onClick={() => {
-                      setStatus("published")
-                      handleSubmit(new Event("submit") as any)
-                    }}
+                    onClick={handlePublish}
                     disabled={isSubmitting || isLoading}
                   >
-                    {isSubmitting ? "Publishing..." : "Publish Post"}
+                    {isSubmitting && status === "published" ? "Publishing..." : "Publish Post"}
                   </Button>
                 </CardFooter>
               </Card>
@@ -313,11 +337,11 @@ export default function NewBlogPostPage() {
                 <CardContent className="space-y-4">
                   <div className="space-y-2">
                     <Label htmlFor="metaTitle">Meta Title</Label>
-                    <Input id="metaTitle" placeholder="SEO title" defaultValue={title} />
+                    <Input id="metaTitle" placeholder="SEO title" value={title} readOnly />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="metaDescription">Meta Description</Label>
-                    <Textarea id="metaDescription" placeholder="SEO description" rows={3} defaultValue={excerpt} />
+                    <Textarea id="metaDescription" placeholder="SEO description" rows={3} value={excerpt} readOnly />
                   </div>
                 </CardContent>
               </Card>

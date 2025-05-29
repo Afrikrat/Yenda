@@ -7,6 +7,7 @@ import { Calendar } from "lucide-react"
 import Image from "next/image"
 import Link from "next/link"
 import { supabase } from "@/lib/supabase/client"
+import { GoogleAdSense } from "@/components/google-adsense"
 
 interface BlogPost {
   id: string
@@ -68,11 +69,18 @@ export default function BlogPage() {
             <p className="text-muted-foreground">Check back later for new content!</p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {posts.map((post) => (
-              <BlogCard key={post.id} post={post} />
-            ))}
-          </div>
+          <>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {posts.map((post) => (
+                <BlogCard key={post.id} post={post} />
+              ))}
+            </div>
+
+            {/* Google AdSense Ad - Moved to bottom of content */}
+            <div className="mt-8 flex justify-center">
+              <GoogleAdSense adSlot="your-blog-ad-slot-id-here" adFormat="horizontal" width={320} height={50} />
+            </div>
+          </>
         )}
       </div>
     </main>

@@ -10,6 +10,7 @@ import Link from "next/link"
 import { useParams, useRouter } from "next/navigation"
 import { supabase } from "@/lib/supabase/client"
 import { useToast } from "@/components/ui/use-toast"
+import { GoogleAdSense } from "@/components/google-adsense"
 
 interface Event {
   id: string
@@ -506,18 +507,14 @@ export default function EventDetailsPage() {
                   <span className="sr-only">Share</span>
                 </Button>
               </div>
-
-              {/* Map placeholder */}
-              <div className="rounded-lg overflow-hidden border h-48 relative">
-                <div className="absolute inset-0 flex items-center justify-center bg-gray-100 dark:bg-gray-800">
-                  <p className="text-muted-foreground">Map view coming soon</p>
-                </div>
-              </div>
-
-              {/* Related events would go here */}
             </div>
           </CardContent>
         </Card>
+      </div>
+
+      {/* Google AdSense Ad */}
+      <div className="container px-4 mx-auto mt-6">
+        <GoogleAdSense adSlot="your-ad-slot-id-here" adFormat="horizontal" width={320} height={50} />
       </div>
     </main>
   )

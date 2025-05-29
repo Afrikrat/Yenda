@@ -15,13 +15,14 @@ import { AlertCircle, Loader2 } from "lucide-react"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 
 // List of admin emails - add your admin email here
-const ADMIN_EMAILS = ["admin@example.com", "admin@yenda.com"]
+const ADMIN_EMAILS = ["admin@example.com", "admin@yenda.com", "yendaofficial@gmail.com"]
 
 export default function AdminLoginPage() {
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [isCheckingSession, setIsCheckingSession] = useState(true)
   const router = useRouter()
   const { toast } = useToast()
 
@@ -33,16 +34,19 @@ export default function AdminLoginPage() {
         if (data.session) {
           // Check if admin by email
           if (ADMIN_EMAILS.includes(data.session.user.email || "")) {
-            window.location.href = "/admin"
+            router.push("/admin")
+            return
           }
         }
       } catch (err) {
         console.error("Error checking session:", err)
+      } finally {
+        setIsCheckingSession(false)
       }
     }
 
     checkSession()
-  }, [])
+  }, [router])
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -78,13 +82,21 @@ export default function AdminLoginPage() {
         description: "Welcome to Yenda Admin Dashboard",
       })
 
-      // Force a hard navigation to refresh the page
-      window.location.href = "/admin"
+      // Use router.push instead of window.location.href
+      router.push("/admin")
     } catch (error: any) {
       setError(error.message || "An unexpected error occurred. Please try again.")
     } finally {
       setIsLoading(false)
     }
+  }
+
+  if (isCheckingSession) {
+    return (
+      <main className="flex items-center justify-center min-h-screen bg-[#b0468e]">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white"></div>
+      </main>
+    )
   }
 
   return (

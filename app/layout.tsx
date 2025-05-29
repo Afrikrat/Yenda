@@ -6,6 +6,7 @@ import { ThemeProvider } from "@/components/theme-provider"
 import BottomNavigation from "@/components/bottom-navigation"
 import { Toaster } from "@/components/ui/toaster"
 import { InstallPrompt } from "@/components/install-prompt"
+import Script from "next/script"
 
 const inter = Inter({ subsets: ["latin"] })
 
@@ -30,6 +31,15 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" suppressHydrationWarning>
+      <head>
+        {/* Google AdSense Script - Replace with your publisher ID */}
+        <Script
+          async
+          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-YOUR_PUBLISHER_ID"
+          strategy="afterInteractive"
+          crossOrigin="anonymous"
+        />
+      </head>
       <body className={`${inter.className} min-h-screen bg-gray-50 dark:bg-gray-900`}>
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
           <div className="flex flex-col min-h-screen pb-16">

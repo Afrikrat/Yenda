@@ -6,7 +6,8 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { useState } from "react"
+import { useState, useEffect } from "react"
+import { useRouter } from "next/navigation"
 import { useToast } from "@/components/ui/use-toast"
 import Image from "next/image"
 import { AlertCircle, Loader2 } from "lucide-react"
@@ -21,7 +22,35 @@ export default function AdminLoginPage() {
   const [password, setPassword] = useState("")
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [redirecting, setRedirecting] = useState(false)
+  const router = useRouter()
   const { toast } = useToast()
+
+  // Check if already logged in on page load
+  useEffect(() => {
+    const checkSession = async () => {
+      try {
+        const {
+          data: { session },
+        } = await supabase.auth.getSession()
+        if (session && ADMIN_EMAILS.includes(session.user.email || "")) {
+          setRedirecting(true)
+          // Multiple redirect attempts
+          setTimeout(() => {
+            window.location.replace("/admin")
+          }, 100)
+          setTimeout(() => {
+            router.push("/admin")
+            router.refresh()
+          }, 200)
+        }
+      } catch (err) {
+        console.error("Session check error:", err)
+      }
+    }
+
+    checkSession()
+  }, [router])
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -29,12 +58,15 @@ export default function AdminLoginPage() {
     setError(null)
 
     try {
+      console.log("Attempting login for:", email)
+
       const { data, error: authError } = await supabase.auth.signInWithPassword({
         email,
         password,
       })
 
       if (authError) {
+        console.error("Auth error:", authError)
         setError(authError.message)
         return
       }
@@ -44,26 +76,68 @@ export default function AdminLoginPage() {
         return
       }
 
+      console.log("Login successful for:", data.user.email)
+
       // Check if the user is an admin by email
       if (!ADMIN_EMAILS.includes(data.user.email || "")) {
-        // Sign out if not admin
+        console.log("User is not an admin:", data.user.email)
         await supabase.auth.signOut()
         setError("You don't have permission to access the admin area.")
         return
       }
 
+      console.log("User is admin, redirecting...")
+
       toast({
         title: "Login successful",
-        description: "Welcome to Yenda Admin Dashboard",
+        description: "Redirecting to admin dashboard...",
       })
 
-      // Force a page reload to the admin dashboard
-      window.location.href = "/admin"
+      setRedirecting(true)
+
+      // Multiple redirect strategies
+      setTimeout(() => {
+        console.log("Redirect attempt 1: window.location.replace")
+        window.location.replace("/admin")
+      }, 500)
+
+      setTimeout(() => {
+        console.log("Redirect attempt 2: window.location.href")
+        window.location.href = "/admin"
+      }, 1000)
+
+      setTimeout(() => {
+        console.log("Redirect attempt 3: router.push")
+        router.push("/admin")
+        router.refresh()
+      }, 1500)
     } catch (error: any) {
+      console.error("Login error:", error)
       setError(error.message || "An unexpected error occurred. Please try again.")
     } finally {
       setIsLoading(false)
     }
+  }
+
+  if (redirecting) {
+    return (
+      <main className="flex items-center justify-center min-h-screen bg-[#b0468e]">
+        <Card className="w-full max-w-md mx-4">
+          <CardContent className="flex flex-col items-center justify-center p-8">
+            <Loader2 className="h-8 w-8 animate-spin text-[#b0468e] mb-4" />
+            <p className="text-center text-[#b0468e] font-medium">
+              Login successful! Redirecting to admin dashboard...
+            </p>
+            <p className="text-center text-sm text-gray-600 mt-2">
+              If you're not redirected automatically,{" "}
+              <a href="/admin" className="text-[#b0468e] underline">
+                click here
+              </a>
+            </p>
+          </CardContent>
+        </Card>
+      </main>
+    )
   }
 
   return (
@@ -90,7 +164,7 @@ export default function AdminLoginPage() {
               <Input
                 id="email"
                 type="email"
-                placeholder="admin@example.com"
+                placeholder="yendaofficial@gmail.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
@@ -117,7 +191,7 @@ export default function AdminLoginPage() {
           <Button
             className="w-full bg-[#b0468e] text-white hover:opacity-90 transition-opacity"
             onClick={handleLogin}
-            disabled={isLoading}
+            disabled={isLoading || redirecting}
           >
             {isLoading ? (
               <>

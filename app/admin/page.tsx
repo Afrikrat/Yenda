@@ -1,9 +1,10 @@
 "use client"
 
 import { Button } from "@/components/ui/button"
-import { BookOpen, Calendar, Tag, PlusCircle, Trash2, Film, Eye, Edit, Activity } from "lucide-react"
+import { BookOpen, Calendar, Tag, PlusCircle, Trash2, Film, Eye, Edit, Activity, LogOut } from "lucide-react"
 import Link from "next/link"
 import { useState, useEffect } from "react"
+import { useRouter } from "next/navigation"
 import { useToast } from "@/components/ui/use-toast"
 import { supabase } from "@/lib/supabase/client"
 import Image from "next/image"
@@ -19,6 +20,9 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog"
+
+// List of admin emails
+const ADMIN_EMAILS = ["admin@example.com", "admin@yenda.com", "yendaofficial@gmail.com"]
 
 interface Event {
   id: string
@@ -61,15 +65,48 @@ export default function AdminPage() {
   const [users, setUsers] = useState<User[]>([])
   const [stories, setStories] = useState<Story[]>([])
   const [isLoading, setIsLoading] = useState(true)
+  const [isCheckingAuth, setIsCheckingAuth] = useState(true)
+  const [currentUser, setCurrentUser] = useState<any>(null)
   const [totalEvents, setTotalEvents] = useState(0)
   const [totalPosts, setTotalPosts] = useState(0)
   const [totalUsers, setTotalUsers] = useState(0)
   const [totalStories, setTotalStories] = useState(0)
+  const router = useRouter()
   const { toast } = useToast()
 
+  // Check authentication on page load
   useEffect(() => {
-    fetchData()
-  }, [])
+    const checkAuth = async () => {
+      try {
+        const {
+          data: { session },
+        } = await supabase.auth.getSession()
+
+        if (!session) {
+          console.log("No session found, redirecting to login")
+          router.push("/admin/login")
+          return
+        }
+
+        if (!ADMIN_EMAILS.includes(session.user.email || "")) {
+          console.log("User is not an admin:", session.user.email)
+          await supabase.auth.signOut()
+          router.push("/admin/login")
+          return
+        }
+
+        console.log("Admin authenticated:", session.user.email)
+        setCurrentUser(session.user)
+        setIsCheckingAuth(false)
+        fetchData()
+      } catch (error) {
+        console.error("Auth check error:", error)
+        router.push("/admin/login")
+      }
+    }
+
+    checkAuth()
+  }, [router])
 
   const fetchData = async () => {
     setIsLoading(true)
@@ -159,6 +196,24 @@ export default function AdminPage() {
     }
   }
 
+  const handleSignOut = async () => {
+    try {
+      await supabase.auth.signOut()
+      toast({
+        title: "Signed out",
+        description: "You have been successfully signed out.",
+      })
+      router.push("/admin/login")
+    } catch (error: any) {
+      console.error("Sign out error:", error)
+      toast({
+        title: "Error",
+        description: "Failed to sign out. Please try again.",
+        variant: "destructive",
+      })
+    }
+  }
+
   const handleDeleteEvent = async (id: string) => {
     try {
       const { error } = await supabase.from("events").delete().eq("id", id)
@@ -225,9 +280,38 @@ export default function AdminPage() {
     }
   }
 
+  // Show loading screen while checking authentication
+  if (isCheckingAuth) {
+    return (
+      <main className="flex items-center justify-center min-h-screen bg-gray-50">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#b0468e] mx-auto mb-4"></div>
+          <p className="text-gray-600">Checking authentication...</p>
+        </div>
+      </main>
+    )
+  }
+
   return (
     <main className="container mx-auto px-4 py-8">
-      <h1 className="text-3xl font-bold mb-8 text-center">Admin Dashboard</h1>
+      {/* Header with user info and sign out */}
+      <header className="flex justify-between items-center mb-8">
+        <div>
+          <h1 className="text-3xl font-bold">Admin Dashboard</h1>
+          <p className="text-gray-600">Welcome back, {currentUser?.email}</p>
+        </div>
+        <div className="flex items-center gap-4">
+          <Link href="/" target="_blank">
+            <Button variant="outline" size="sm">
+              View Site
+            </Button>
+          </Link>
+          <Button variant="outline" size="sm" onClick={handleSignOut}>
+            <LogOut className="h-4 w-4 mr-2" />
+            Sign Out
+          </Button>
+        </div>
+      </header>
 
       {/* Health Monitor Button - Prominently displayed at the top */}
       <div className="mb-8 flex justify-center">

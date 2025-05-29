@@ -6,13 +6,12 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { useState, useEffect } from "react"
-import { useRouter } from "next/navigation"
-import { supabase } from "@/lib/supabase/client"
+import { useState } from "react"
 import { useToast } from "@/components/ui/use-toast"
 import Image from "next/image"
 import { AlertCircle, Loader2 } from "lucide-react"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
+import { supabase } from "@/lib/supabase/client"
 
 // List of admin emails - add your admin email here
 const ADMIN_EMAILS = ["admin@example.com", "admin@yenda.com", "yendaofficial@gmail.com"]
@@ -22,31 +21,7 @@ export default function AdminLoginPage() {
   const [password, setPassword] = useState("")
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [isCheckingSession, setIsCheckingSession] = useState(true)
-  const router = useRouter()
   const { toast } = useToast()
-
-  // Check if already logged in
-  useEffect(() => {
-    const checkSession = async () => {
-      try {
-        const { data } = await supabase.auth.getSession()
-        if (data.session) {
-          // Check if admin by email
-          if (ADMIN_EMAILS.includes(data.session.user.email || "")) {
-            router.push("/admin")
-            return
-          }
-        }
-      } catch (err) {
-        console.error("Error checking session:", err)
-      } finally {
-        setIsCheckingSession(false)
-      }
-    }
-
-    checkSession()
-  }, [router])
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -82,21 +57,13 @@ export default function AdminLoginPage() {
         description: "Welcome to Yenda Admin Dashboard",
       })
 
-      // Use router.push instead of window.location.href
-      router.push("/admin")
+      // Force a page reload to the admin dashboard
+      window.location.href = "/admin"
     } catch (error: any) {
       setError(error.message || "An unexpected error occurred. Please try again.")
     } finally {
       setIsLoading(false)
     }
-  }
-
-  if (isCheckingSession) {
-    return (
-      <main className="flex items-center justify-center min-h-screen bg-[#b0468e]">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white"></div>
-      </main>
-    )
   }
 
   return (

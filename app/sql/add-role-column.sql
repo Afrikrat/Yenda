@@ -1,4 +1,4 @@
--- Add role column to profiles if it doesn't exist
+-- Add role column to profiles table if it doesn't exist
 DO $$
 BEGIN
   IF NOT EXISTS (
@@ -6,17 +6,11 @@ BEGIN
     WHERE table_name = 'profiles' AND column_name = 'role'
   ) THEN
     ALTER TABLE profiles ADD COLUMN role TEXT DEFAULT 'user';
+    
+    -- Set all existing users to 'user' role by default
+    UPDATE profiles SET role = 'user' WHERE role IS NULL;
+    
+    -- You can manually set admin role for specific users later
+    -- Example: UPDATE profiles SET role = 'admin' WHERE id = 'your-admin-user-id';
   END IF;
 END $$;
-
--- Update existing admin users (assuming admin@example.com is your admin)
-UPDATE profiles 
-SET role = 'admin' 
-WHERE id IN (
-  SELECT id FROM auth.users WHERE email = 'admin@example.com'
-);
-
--- Make sure all other users have the 'user' role
-UPDATE profiles
-SET role = 'user'
-WHERE role IS NULL;

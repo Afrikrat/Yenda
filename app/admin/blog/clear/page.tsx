@@ -18,8 +18,8 @@ export default function ClearBlogDataPage() {
     try {
       setIsClearing(true)
 
-      // Clear blog posts
-      const { error } = await supabase.from("blog_posts").delete().not("id", "eq", "placeholder")
+      // Clear blog posts - remove the placeholder condition entirely
+      const { error } = await supabase.from("blog_posts").delete()
 
       if (error) {
         throw new Error(`Failed to clear blog posts: ${error.message}`)

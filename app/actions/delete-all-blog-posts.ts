@@ -7,8 +7,8 @@ export async function deleteAllBlogPosts() {
   try {
     const supabase = createServerSupabaseClient()
 
-    // Delete all blog posts
-    const { error } = await supabase.from("blog_posts").delete().neq("id", "placeholder")
+    // Delete all blog posts - remove the placeholder condition
+    const { error } = await supabase.from("blog_posts").delete()
 
     if (error) {
       console.error("Error deleting all blog posts:", error)

@@ -8,18 +8,18 @@ export async function clearAllDemoData() {
     const supabase = createServerSupabaseClient()
     console.log("Starting demo data cleanup...")
 
-    // Clear blog posts
+    // Clear blog posts - remove the placeholder condition
     console.log("Clearing blog posts...")
-    const { error: blogError } = await supabase.from("blog_posts").delete().not("id", "eq", "placeholder")
+    const { error: blogError } = await supabase.from("blog_posts").delete()
 
     if (blogError) {
       console.error("Error clearing blog posts:", blogError)
       throw new Error(`Failed to clear blog posts: ${blogError.message}`)
     }
 
-    // Clear events
+    // Clear events - remove the placeholder condition
     console.log("Clearing events...")
-    const { error: eventsError } = await supabase.from("events").delete().not("id", "eq", "placeholder")
+    const { error: eventsError } = await supabase.from("events").delete()
 
     if (eventsError) {
       console.error("Error clearing events:", eventsError)

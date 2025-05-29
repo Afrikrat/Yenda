@@ -9,7 +9,6 @@ import { Label } from "@/components/ui/label"
 import { AlertCircle, ArrowLeft, Loader2 } from "lucide-react"
 import Link from "next/link"
 import { useState } from "react"
-import { supabase } from "@/lib/supabase/client"
 import { useToast } from "@/components/ui/use-toast"
 import { useRouter } from "next/navigation"
 import MediaUpload from "@/components/media-upload"
@@ -39,40 +38,34 @@ export default function NewUserPage() {
 
     setIsSubmitting(true)
     try {
-      // Create user with the Supabase API
-      const { data: authData, error: authError } = await supabase.auth.admin.createUser({
-        email,
-        password,
-        email_confirm: true,
+      // Use a server action to create the user instead of client-side API
+      const response = await fetch("/api/admin/users", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          email,
+          password,
+          fullName,
+          phone,
+          avatarUrl,
+          role,
+        }),
       })
 
-      if (authError) {
-        console.error("Auth error:", authError)
-        throw authError
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.error || "Failed to create user")
       }
 
-      if (authData.user) {
-        // Create user profile
-        const { error: profileError } = await supabase.from("profiles").insert({
-          id: authData.user.id,
-          full_name: fullName,
-          phone,
-          avatar_url: avatarUrl,
-          role: role, // Set the role
-        })
+      toast({
+        title: "User created",
+        description: "The user has been created successfully.",
+      })
 
-        if (profileError) {
-          console.error("Profile error:", profileError)
-          throw profileError
-        }
-
-        toast({
-          title: "User created",
-          description: "The user has been created successfully.",
-        })
-
-        router.push("/admin/users")
-      }
+      router.push("/admin/users")
     } catch (error: any) {
       console.error("Error creating user:", error)
       setError(error.message || "Failed to create user. Please try again.")

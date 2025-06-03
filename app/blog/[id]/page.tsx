@@ -93,14 +93,14 @@ export default async function BlogPostPage({ params }: { params: { id: string } 
 
             <h1 className="text-3xl font-bold mb-6">{post.title}</h1>
 
-            {/* Ad after title */}
+            {/* Ad after title - 320x50 size only */}
             <div className="my-6 flex justify-center">
               <GoogleAdSense />
             </div>
 
             <div className="prose dark:prose-invert max-w-none" dangerouslySetInnerHTML={{ __html: post.content }} />
 
-            {/* Ad after content */}
+            {/* Ad after content - 320x50 size only */}
             <div className="my-8 flex justify-center">
               <GoogleAdSense />
             </div>

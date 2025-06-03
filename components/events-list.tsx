@@ -322,10 +322,10 @@ export default function EventsList({ initialEvents = [] }: EventsListProps) {
             {safeEvents.map((event, index) => (
               <React.Fragment key={event.id}>
                 <EventCard event={event} viewMode={viewMode} />
-                {/* Show ad after every 3rd event */}
+                {/* Show ad after every 3rd event - 320x50 size only */}
                 {(index + 1) % 3 === 0 && index < safeEvents.length - 1 && (
                   <div className={cn("flex justify-center items-center", viewMode === "grid" ? "col-span-full" : "")}>
-                    <GoogleAdSense adSlot="1234567890" adFormat="horizontal" width={320} height={50} className="my-4" />
+                    <GoogleAdSense adSlot="1234567890" className="my-4" />
                   </div>
                 )}
               </React.Fragment>

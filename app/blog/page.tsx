@@ -82,19 +82,19 @@ export default function BlogPage() {
               {posts.map((post, index) => (
                 <React.Fragment key={post.id}>
                   <BlogCard post={post} />
-                  {/* Show ad after every 2nd post */}
+                  {/* Show ad after every 2nd post - 320x50 size only */}
                   {(index + 1) % 2 === 0 && index < posts.length - 1 && (
                     <div className="md:col-span-2 flex justify-center my-4">
-                      <GoogleAdSense adSlot="1234567890" width={320} height={50} />
+                      <GoogleAdSense adSlot="1234567890" />
                     </div>
                   )}
                 </React.Fragment>
               ))}
             </div>
 
-            {/* Google AdSense Ad - Moved to bottom of content */}
+            {/* Google AdSense Ad at bottom - 320x50 size only */}
             <div className="mt-8 flex justify-center">
-              <GoogleAdSense adSlot="your-blog-ad-slot-id-here" width={320} height={50} />
+              <GoogleAdSense adSlot="your-blog-ad-slot-id-here" />
             </div>
           </>
         )}

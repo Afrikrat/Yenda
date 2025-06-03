@@ -386,9 +386,9 @@ export default function EventDetailsPage() {
                 <p className="text-muted-foreground mt-2">{event.description}</p>
               </div>
 
-              {/* Ad after description */}
+              {/* Ad after description - 320x50 only */}
               <div className="flex justify-center">
-                <GoogleAdSense adSlot="1234567890" width={320} height={50} />
+                <GoogleAdSense adSlot="1234567890" />
               </div>
 
               {/* Countdown Timer */}
@@ -485,9 +485,9 @@ export default function EventDetailsPage() {
                 </div>
               </div>
 
-              {/* Ad before buttons */}
+              {/* Ad before buttons - 320x50 only */}
               <div className="flex justify-center">
-                <GoogleAdSense adSlot="1234567890" width={320} height={50} />
+                <GoogleAdSense adSlot="1234567890" />
               </div>
 
               <div className="flex flex-col sm:flex-row gap-3">

@@ -4,19 +4,10 @@ import { useEffect, useRef } from "react"
 
 interface GoogleAdSenseProps {
   adSlot?: string
-  adFormat?: "auto" | "horizontal" | "vertical" | "rectangle"
-  width?: number
-  height?: number
   className?: string
 }
 
-export default function GoogleAdSense({
-  adSlot = "1234567890",
-  adFormat = "auto",
-  width = 320,
-  height = 50,
-  className = "",
-}: GoogleAdSenseProps) {
+export default function GoogleAdSense({ adSlot = "1234567890", className = "" }: GoogleAdSenseProps) {
   const adRef = useRef<HTMLDivElement>(null)
   const isLoaded = useRef(false)
 
@@ -49,14 +40,14 @@ export default function GoogleAdSense({
   }, [])
 
   return (
-    <div ref={adRef} className={`overflow-hidden ${className}`} style={{ width, height }}>
+    <div ref={adRef} className={`overflow-hidden ${className}`} style={{ width: 320, height: 50 }}>
       <ins
         className="adsbygoogle"
-        style={{ display: "block", width: "100%", height: "100%" }}
+        style={{ display: "block", width: "320px", height: "50px" }}
         data-ad-client="ca-pub-5039043071428597"
         data-ad-slot={adSlot}
-        data-ad-format={adFormat}
-        data-full-width-responsive="true"
+        data-ad-format="horizontal"
+        data-full-width-responsive="false"
       />
     </div>
   )

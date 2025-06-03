@@ -20,7 +20,7 @@ export default function BottomNavigation() {
   ]
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-50 bg-white/90 dark:bg-gray-900/90 native-bottom-nav safe-area-bottom">
+    <div className="fixed bottom-0 left-0 right-0 z-[9999] bg-white dark:bg-black border-t border-gray-200 dark:border-gray-800 native-bottom-nav safe-area-bottom">
       <div className="flex justify-around items-center h-16">
         {navItems.map((item) => {
           const isActive = pathname === item.href
@@ -39,7 +39,7 @@ export default function BottomNavigation() {
               )}
             >
               {isStories && (
-                <div className="absolute -top-3 w-12 h-12 rounded-full bg-[#b0468e] flex items-center justify-center">
+                <div className="absolute -top-3 w-12 h-12 rounded-full bg-[#b0468e] flex items-center justify-center shadow-lg">
                   <item.icon className="w-6 h-6 text-white" />
                 </div>
               )}

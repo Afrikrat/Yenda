@@ -7,11 +7,12 @@ export default function MainLayout({
 }: {
   children: React.ReactNode
 }) {
+  console.log("MainLayout rendering")
   return (
-    <div className="flex flex-col min-h-screen pb-16">
-      {children}
+    <>
+      <div className="flex flex-col min-h-screen pb-16">{children}</div>
       <BottomNavigation />
       <InstallPrompt />
-    </div>
+    </>
   )
 }

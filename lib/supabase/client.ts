@@ -30,6 +30,9 @@ export const getSupabaseClient = () => {
 // For backward compatibility
 export const supabase = getSupabaseClient()
 
+// Export createClient for direct use
+export { createClient }
+
 // Helper function to refresh the token
 export const refreshToken = async () => {
   try {

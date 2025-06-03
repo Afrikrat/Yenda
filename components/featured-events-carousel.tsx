@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button"
 import { ChevronLeft, ChevronRight, Calendar, MapPin } from "lucide-react"
 import Image from "next/image"
 import Link from "next/link"
-import { supabase, refreshToken } from "@/lib/supabase/client"
+import { supabase } from "@/lib/supabase/client"
 import { useToast } from "@/components/ui/use-toast"
 
 interface Event {
@@ -49,6 +49,7 @@ export default function FeaturedEventsCarousel() {
   const fetchFeaturedEvents = async () => {
     setIsLoading(true)
     try {
+      console.log("Fetching featured events...")
       const { data, error } = await supabase
         .from("events")
         .select("id, title, slug, date, location, image_url, featured")
@@ -59,32 +60,10 @@ export default function FeaturedEventsCarousel() {
 
       if (error) {
         console.error("Error fetching featured events:", error)
-
-        // If JWT expired, try to refresh the token and fetch again
-        if (error.message.includes("JWT")) {
-          const refreshed = await refreshToken()
-          if (refreshed) {
-            const { data: refreshedData, error: refreshedError } = await supabase
-              .from("events")
-              .select("id, title, slug, date, location, image_url, featured")
-              .eq("featured", true)
-              .eq("published", true)
-              .order("date", { ascending: true })
-              .limit(5)
-
-            if (refreshedError) {
-              console.error("Error after token refresh:", refreshedError)
-              throw refreshedError
-            }
-
-            setEvents(refreshedData || [])
-            return
-          }
-        }
-
         throw error
       }
 
+      console.log("Featured events data:", data)
       setEvents(data || [])
     } catch (error) {
       console.error("Error fetching featured events:", error)
@@ -109,10 +88,12 @@ export default function FeaturedEventsCarousel() {
   }
 
   const nextSlide = () => {
+    if (events.length === 0) return
     setCurrentIndex((prevIndex) => (prevIndex + 1) % events.length)
   }
 
   const prevSlide = () => {
+    if (events.length === 0) return
     setCurrentIndex((prevIndex) => (prevIndex - 1 + events.length) % events.length)
   }
 
@@ -129,7 +110,11 @@ export default function FeaturedEventsCarousel() {
   }
 
   if (events.length === 0) {
-    return null
+    return (
+      <div className="w-full h-64 rounded-xl bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
+        <div className="text-muted-foreground">No featured events available</div>
+      </div>
+    )
   }
 
   return (

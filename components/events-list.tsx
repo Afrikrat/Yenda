@@ -1,5 +1,6 @@
 "use client"
 
+import React from "react"
 import { useState, useEffect } from "react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -11,6 +12,7 @@ import { supabase } from "@/lib/supabase/client"
 import { useToast } from "@/components/ui/use-toast"
 import { useSearchParams } from "next/navigation"
 import { useIsMobile } from "@/hooks/use-mobile"
+import GoogleAdSense from "@/components/google-adsense"
 
 interface Event {
   id: string
@@ -27,13 +29,13 @@ interface Event {
 }
 
 interface EventsListProps {
-  initialEvents: Event[]
+  initialEvents?: Event[]
 }
 
-export default function EventsList({ initialEvents }: EventsListProps) {
+export default function EventsList({ initialEvents = [] }: EventsListProps) {
   const isMobile = useIsMobile()
   const [viewMode, setViewMode] = useState<"grid" | "list">(isMobile ? "list" : "grid")
-  const [events, setEvents] = useState<Event[]>(initialEvents)
+  const [events, setEvents] = useState<Event[]>(initialEvents || [])
   const [isLoading, setIsLoading] = useState(false)
   const [hasMore, setHasMore] = useState(true)
   const [fetchError, setFetchError] = useState(false)
@@ -60,7 +62,7 @@ export default function EventsList({ initialEvents }: EventsListProps) {
       const searchKey = searchParams.toString() || "default"
       const cachedEvents = localStorage.getItem(`cached_events_${searchKey}`)
 
-      if (cachedEvents && initialEvents.length === 0) {
+      if (cachedEvents && (!initialEvents || initialEvents.length === 0)) {
         const parsedEvents = JSON.parse(cachedEvents)
         if (parsedEvents && parsedEvents.length > 0) {
           setEvents(parsedEvents)
@@ -80,11 +82,6 @@ export default function EventsList({ initialEvents }: EventsListProps) {
           time, 
           location, 
           image_url,
-          slug, 
-          date, 
-          time, 
-          location, 
-          image_url, 
           featured,
           category_id,
           town_id,
@@ -148,7 +145,7 @@ export default function EventsList({ initialEvents }: EventsListProps) {
       setFetchError(true)
 
       // If we have initial events, use them as fallback
-      if (initialEvents.length > 0 && events.length === 0) {
+      if (initialEvents && initialEvents.length > 0 && events.length === 0) {
         setEvents(initialEvents)
       }
 
@@ -163,7 +160,7 @@ export default function EventsList({ initialEvents }: EventsListProps) {
   }
 
   const loadMoreEvents = async () => {
-    if (!hasMore || isLoading) return
+    if (!hasMore || isLoading || !events || events.length === 0) return
 
     setIsLoading(true)
     try {
@@ -233,6 +230,9 @@ export default function EventsList({ initialEvents }: EventsListProps) {
     setRetryCount(retryCount + 1)
   }
 
+  // Ensure events is always an array
+  const safeEvents = events || []
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -278,7 +278,7 @@ export default function EventsList({ initialEvents }: EventsListProps) {
         </div>
       )}
 
-      {isLoading && events.length === 0 ? (
+      {isLoading && safeEvents.length === 0 ? (
         <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 md:grid-cols-3">
           {[...Array(6)].map((_, i) => (
             <Card key={i} className="overflow-hidden h-64 animate-pulse">
@@ -291,7 +291,7 @@ export default function EventsList({ initialEvents }: EventsListProps) {
             </Card>
           ))}
         </div>
-      ) : events.length === 0 ? (
+      ) : safeEvents.length === 0 ? (
         <Card>
           <CardContent className="flex flex-col items-center justify-center p-6 text-center">
             <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mb-4">
@@ -319,8 +319,16 @@ export default function EventsList({ initialEvents }: EventsListProps) {
               viewMode === "grid" ? "grid-cols-1 sm:grid-cols-2 md:grid-cols-3" : "grid-cols-1",
             )}
           >
-            {events.map((event) => (
-              <EventCard key={event.id} event={event} viewMode={viewMode} />
+            {safeEvents.map((event, index) => (
+              <React.Fragment key={event.id}>
+                <EventCard event={event} viewMode={viewMode} />
+                {/* Show ad after every 3rd event */}
+                {(index + 1) % 3 === 0 && index < safeEvents.length - 1 && (
+                  <div className={cn("flex justify-center items-center", viewMode === "grid" ? "col-span-full" : "")}>
+                    <GoogleAdSense adSlot="1234567890" adFormat="horizontal" width={320} height={50} className="my-4" />
+                  </div>
+                )}
+              </React.Fragment>
             ))}
           </div>
 

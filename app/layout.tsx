@@ -3,9 +3,7 @@ import type { Metadata } from "next"
 import { Inter } from "next/font/google"
 import "./globals.css"
 import { ThemeProvider } from "@/components/theme-provider"
-import BottomNavigation from "@/components/bottom-navigation"
 import { Toaster } from "@/components/ui/toaster"
-import { InstallPrompt } from "@/components/install-prompt"
 import Script from "next/script"
 
 const inter = Inter({ subsets: ["latin"] })
@@ -32,22 +30,18 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
-        {/* Google AdSense Script - Replace with your publisher ID */}
+        {/* Google AdSense Script */}
         <Script
           async
-          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-YOUR_PUBLISHER_ID"
+          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5039043071428597"
           strategy="afterInteractive"
           crossOrigin="anonymous"
         />
       </head>
       <body className={`${inter.className} min-h-screen bg-gray-50 dark:bg-gray-900`}>
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-          <div className="flex flex-col min-h-screen pb-16">
-            {children}
-            <BottomNavigation />
-            <InstallPrompt />
-            <Toaster />
-          </div>
+          {children}
+          <Toaster />
         </ThemeProvider>
       </body>
     </html>

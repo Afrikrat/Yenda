@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useRef } from "react"
+import { useEffect, useRef, useState } from "react"
 
 interface GoogleAdSenseProps {
   adSlot: string
@@ -10,7 +10,7 @@ interface GoogleAdSenseProps {
   className?: string
 }
 
-export function GoogleAdSense({
+export default function GoogleAdSense({
   adSlot,
   adFormat = "horizontal",
   width = 320,
@@ -18,31 +18,61 @@ export function GoogleAdSense({
   className = "",
 }: GoogleAdSenseProps) {
   const adRef = useRef<HTMLDivElement>(null)
+  const [adLoaded, setAdLoaded] = useState(false)
+  const [adError, setAdError] = useState(false)
 
   useEffect(() => {
     // Only run on client side
     if (typeof window === "undefined") return
 
     try {
-      // Check if adsbygoogle is defined
-      if (window.adsbygoogle) {
-        // Push the ad to Google AdSense
-        ;(window.adsbygoogle = window.adsbygoogle || []).push({})
+      // Load AdSense script if not already loaded
+      if (!document.querySelector('script[src*="adsbygoogle.js"]')) {
+        const script = document.createElement("script")
+        script.async = true
+        script.src = "https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5039043071428597"
+        script.crossOrigin = "anonymous"
+        document.head.appendChild(script)
       }
+
+      // Initialize ad after a short delay
+      const timer = setTimeout(() => {
+        try {
+          if (window.adsbygoogle) {
+            ;(window.adsbygoogle = window.adsbygoogle || []).push({})
+            setAdLoaded(true)
+          }
+        } catch (error) {
+          console.error("Error loading AdSense ad:", error)
+          setAdError(true)
+        }
+      }, 1000)
+
+      return () => clearTimeout(timer)
     } catch (error) {
-      console.error("Error loading AdSense ad:", error)
+      console.error("Error setting up AdSense:", error)
+      setAdError(true)
     }
   }, [])
 
+  if (adError) {
+    return <div className="text-center text-gray-500 text-sm">Ad space</div>
+  }
+
   return (
     <div className={`overflow-hidden ${className}`} style={{ width, height }}>
+      {!adLoaded && (
+        <div className="flex items-center justify-center h-full bg-gray-100 dark:bg-gray-800">
+          <span className="text-gray-500 text-sm">Loading ad...</span>
+        </div>
+      )}
       <ins
         className="adsbygoogle"
         style={{ display: "block", width: `${width}px`, height: `${height}px` }}
-        data-ad-client="ca-pub-YOUR_PUBLISHER_ID" // Replace with your publisher ID
+        data-ad-client="ca-pub-5039043071428597"
         data-ad-slot={adSlot}
         data-ad-format={adFormat}
-        data-full-width-responsive="false"
+        data-full-width-responsive="true"
         ref={adRef}
       />
     </div>

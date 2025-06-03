@@ -1,87 +1,63 @@
 "use client"
 
-import { useEffect, useRef, useState } from "react"
+import { useEffect, useRef } from "react"
 
 interface GoogleAdSenseProps {
-  adSlot: string
-  adFormat?: "horizontal" | "vertical" | "rectangle"
+  adSlot?: string
+  adFormat?: "auto" | "horizontal" | "vertical" | "rectangle"
   width?: number
   height?: number
   className?: string
 }
 
 export default function GoogleAdSense({
-  adSlot,
-  adFormat = "horizontal",
+  adSlot = "1234567890",
+  adFormat = "auto",
   width = 320,
   height = 50,
   className = "",
 }: GoogleAdSenseProps) {
   const adRef = useRef<HTMLDivElement>(null)
-  const [adLoaded, setAdLoaded] = useState(false)
-  const [adError, setAdError] = useState(false)
+  const isLoaded = useRef(false)
 
   useEffect(() => {
-    // Only run on client side
-    if (typeof window === "undefined") return
+    // Only load ads once per component
+    if (isLoaded.current) return
 
     try {
-      // Load AdSense script if not already loaded
-      if (!document.querySelector('script[src*="adsbygoogle.js"]')) {
-        const script = document.createElement("script")
-        script.async = true
-        script.src = "https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5039043071428597"
-        script.crossOrigin = "anonymous"
-        document.head.appendChild(script)
-      }
-
-      // Initialize ad after a short delay
-      const timer = setTimeout(() => {
-        try {
+      // Check if window and document are available (client-side)
+      if (typeof window !== "undefined" && typeof document !== "undefined") {
+        // Wait for the Google AdSense script to be ready
+        const tryLoadAd = () => {
+          // @ts-ignore
           if (window.adsbygoogle) {
+            // @ts-ignore
             ;(window.adsbygoogle = window.adsbygoogle || []).push({})
-            setAdLoaded(true)
+            isLoaded.current = true
+          } else {
+            // Retry after a short delay
+            setTimeout(tryLoadAd, 200)
           }
-        } catch (error) {
-          console.error("Error loading AdSense ad:", error)
-          setAdError(true)
         }
-      }, 1000)
 
-      return () => clearTimeout(timer)
+        // Start trying to load the ad
+        tryLoadAd()
+      }
     } catch (error) {
-      console.error("Error setting up AdSense:", error)
-      setAdError(true)
+      console.error("Error loading AdSense ad:", error)
     }
   }, [])
 
-  if (adError) {
-    return <div className="text-center text-gray-500 text-sm">Ad space</div>
-  }
-
   return (
-    <div className={`overflow-hidden ${className}`} style={{ width, height }}>
-      {!adLoaded && (
-        <div className="flex items-center justify-center h-full bg-gray-100 dark:bg-gray-800">
-          <span className="text-gray-500 text-sm">Loading ad...</span>
-        </div>
-      )}
+    <div ref={adRef} className={`overflow-hidden ${className}`} style={{ width, height }}>
       <ins
         className="adsbygoogle"
-        style={{ display: "block", width: `${width}px`, height: `${height}px` }}
+        style={{ display: "block", width: "100%", height: "100%" }}
         data-ad-client="ca-pub-5039043071428597"
         data-ad-slot={adSlot}
         data-ad-format={adFormat}
         data-full-width-responsive="true"
-        ref={adRef}
       />
     </div>
   )
-}
-
-// Add this to make TypeScript happy
-declare global {
-  interface Window {
-    adsbygoogle: any[]
-  }
 }

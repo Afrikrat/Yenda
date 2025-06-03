@@ -3,7 +3,9 @@ import type { Metadata } from "next"
 import { Inter } from "next/font/google"
 import "./globals.css"
 import { ThemeProvider } from "@/components/theme-provider"
+import BottomNavigation from "@/components/bottom-navigation"
 import { Toaster } from "@/components/ui/toaster"
+import { InstallPrompt } from "@/components/install-prompt"
 import Script from "next/script"
 
 const inter = Inter({ subsets: ["latin"] })
@@ -40,8 +42,12 @@ export default function RootLayout({
       </head>
       <body className={`${inter.className} min-h-screen bg-gray-50 dark:bg-gray-900`}>
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-          {children}
-          <Toaster />
+          <div className="flex flex-col min-h-screen pb-16">
+            {children}
+            <BottomNavigation />
+            <InstallPrompt />
+            <Toaster />
+          </div>
         </ThemeProvider>
       </body>
     </html>

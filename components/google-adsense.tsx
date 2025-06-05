@@ -2,52 +2,58 @@
 
 import { useEffect, useRef } from "react"
 
-interface GoogleAdSenseProps {
-  adSlot?: string
-  className?: string
-}
-
-export default function GoogleAdSense({ adSlot = "1234567890", className = "" }: GoogleAdSenseProps) {
+export default function GoogleAdSense({ adSlot = "1234567890", className = "" }) {
   const adRef = useRef<HTMLDivElement>(null)
-  const isLoaded = useRef(false)
+  const isInitialized = useRef(false)
 
   useEffect(() => {
-    // Only load ads once per component
-    if (isLoaded.current) return
+    // Only run on client side
+    if (typeof window === "undefined") return
+
+    // Only initialize once
+    if (isInitialized.current) return
+    isInitialized.current = true
 
     try {
-      // Check if window and document are available (client-side)
-      if (typeof window !== "undefined" && typeof document !== "undefined") {
-        // Wait for the Google AdSense script to be ready
-        const tryLoadAd = () => {
-          // @ts-ignore
-          if (window.adsbygoogle) {
+      // Debug info
+      console.log("Initializing AdSense ad with slot:", adSlot)
+
+      // Make sure the AdSense script is loaded
+      const checkAdSenseAndLoad = () => {
+        // @ts-ignore
+        if (window.adsbygoogle) {
+          console.log("AdSense found, pushing ad")
+          try {
             // @ts-ignore
             ;(window.adsbygoogle = window.adsbygoogle || []).push({})
-            isLoaded.current = true
-          } else {
-            // Retry after a short delay
-            setTimeout(tryLoadAd, 200)
+            console.log("Ad push completed")
+          } catch (pushError) {
+            console.error("Error pushing ad:", pushError)
           }
+        } else {
+          console.log("AdSense not found yet, retrying...")
+          setTimeout(checkAdSenseAndLoad, 300)
         }
-
-        // Start trying to load the ad
-        tryLoadAd()
       }
+
+      // Start checking for AdSense
+      checkAdSenseAndLoad()
     } catch (error) {
-      console.error("Error loading AdSense ad:", error)
+      console.error("Error setting up AdSense:", error)
     }
-  }, [])
+
+    return () => {
+      console.log("Ad component unmounted")
+    }
+  }, [adSlot])
 
   return (
-    <div ref={adRef} className={`overflow-hidden ${className}`} style={{ width: 320, height: 50 }}>
+    <div className={`ad-container overflow-hidden flex justify-center ${className}`}>
       <ins
         className="adsbygoogle"
-        style={{ display: "block", width: "320px", height: "50px" }}
+        style={{ display: "inline-block", width: "320px", height: "50px" }}
         data-ad-client="ca-pub-5039043071428597"
         data-ad-slot={adSlot}
-        data-ad-format="horizontal"
-        data-full-width-responsive="false"
       />
     </div>
   )

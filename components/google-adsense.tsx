@@ -15,23 +15,17 @@ export default function GoogleAdSense({ adSlot = "1234567890", className = "" })
     isInitialized.current = true
 
     try {
-      // Debug info
-      console.log("Initializing AdSense ad with slot:", adSlot)
-
       // Make sure the AdSense script is loaded
       const checkAdSenseAndLoad = () => {
         // @ts-ignore
         if (window.adsbygoogle) {
-          console.log("AdSense found, pushing ad")
           try {
             // @ts-ignore
             ;(window.adsbygoogle = window.adsbygoogle || []).push({})
-            console.log("Ad push completed")
           } catch (pushError) {
             console.error("Error pushing ad:", pushError)
           }
         } else {
-          console.log("AdSense not found yet, retrying...")
           setTimeout(checkAdSenseAndLoad, 300)
         }
       }
@@ -40,10 +34,6 @@ export default function GoogleAdSense({ adSlot = "1234567890", className = "" })
       checkAdSenseAndLoad()
     } catch (error) {
       console.error("Error setting up AdSense:", error)
-    }
-
-    return () => {
-      console.log("Ad component unmounted")
     }
   }, [adSlot])
 

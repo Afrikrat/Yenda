@@ -9,7 +9,6 @@ import Image from "next/image"
 import Link from "next/link"
 import { supabase } from "@/lib/supabase/client"
 import GoogleAdSense from "@/components/google-adsense"
-import AdSenseDebug from "@/components/adsense-debug"
 
 interface BlogPost {
   id: string
@@ -71,11 +70,6 @@ export default function BlogPage() {
       <div className="container px-4 py-6 mx-auto">
         <h1 className="text-2xl font-bold mb-6">Blog</h1>
 
-        {/* Test ad with border to see if it's rendering */}
-        <div className="border-2 border-red-500 my-4 flex justify-center">
-          <GoogleAdSense adSlot="1234567890" />
-        </div>
-
         {posts.length === 0 ? (
           <div className="text-center py-12">
             <h3 className="text-lg font-medium mb-2">No blog posts yet</h3>
@@ -89,7 +83,7 @@ export default function BlogPage() {
                   <BlogCard post={post} />
                   {/* Show ad after every 2nd post - 320x50 size only */}
                   {(index + 1) % 2 === 0 && index < posts.length - 1 && (
-                    <div className="md:col-span-2 flex justify-center my-4 border border-blue-500">
+                    <div className="md:col-span-2 flex justify-center my-4">
                       <GoogleAdSense adSlot="1234567890" />
                     </div>
                   )}
@@ -98,15 +92,12 @@ export default function BlogPage() {
             </div>
 
             {/* Google AdSense Ad at bottom - 320x50 size only */}
-            <div className="mt-8 flex justify-center border border-green-500">
+            <div className="mt-8 flex justify-center">
               <GoogleAdSense adSlot="your-blog-ad-slot-id-here" />
             </div>
           </>
         )}
       </div>
-
-      {/* Debug component */}
-      <AdSenseDebug />
     </main>
   )
 }

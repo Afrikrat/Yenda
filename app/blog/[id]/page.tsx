@@ -4,7 +4,7 @@ import Image from "next/image"
 import Link from "next/link"
 import { notFound } from "next/navigation"
 import { supabase } from "@/lib/supabase/client"
-import Script from "next/script"
+import GoogleAdSense from "@/components/google-adsense"
 
 interface BlogPost {
   id: string
@@ -93,32 +93,16 @@ export default async function BlogPostPage({ params }: { params: { id: string } 
 
             <h1 className="text-3xl font-bold mb-6">{post.title}</h1>
 
-            {/* Ad after title - 350x50 size */}
-            <div className="my-6 flex justify-center">
-              <div>
-                <ins
-                  className="adsbygoogle"
-                  style={{ display: "inline-block", width: "350px", height: "50px" }}
-                  data-ad-client="ca-pub-5039043071428597"
-                  data-ad-slot="2372308005"
-                />
-                <Script id="blog-ad-top">{`(adsbygoogle = window.adsbygoogle || []).push({});`}</Script>
-              </div>
+            {/* Mobile-optimized ad after title */}
+            <div className="my-6">
+              <GoogleAdSense />
             </div>
 
             <div className="prose dark:prose-invert max-w-none" dangerouslySetInnerHTML={{ __html: post.content }} />
 
-            {/* Ad after content - 350x50 size */}
-            <div className="my-8 flex justify-center">
-              <div>
-                <ins
-                  className="adsbygoogle"
-                  style={{ display: "inline-block", width: "350px", height: "50px" }}
-                  data-ad-client="ca-pub-5039043071428597"
-                  data-ad-slot="2372308005"
-                />
-                <Script id="blog-ad-bottom">{`(adsbygoogle = window.adsbygoogle || []).push({});`}</Script>
-              </div>
+            {/* Mobile-optimized ad after content */}
+            <div className="my-8">
+              <GoogleAdSense />
             </div>
 
             <div className="mt-10 flex justify-between items-center">

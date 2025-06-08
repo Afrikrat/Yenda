@@ -10,7 +10,7 @@ import Link from "next/link"
 import { useParams, useRouter } from "next/navigation"
 import { supabase } from "@/lib/supabase/client"
 import { useToast } from "@/components/ui/use-toast"
-import Script from "next/script"
+import GoogleAdSense from "@/components/google-adsense"
 
 interface Event {
   id: string
@@ -386,19 +386,8 @@ export default function EventDetailsPage() {
                 <p className="text-muted-foreground mt-2">{event.description}</p>
               </div>
 
-              {/* Ad after description - using 350x50 size */}
-              <div className="flex justify-center">
-                <div>
-                  {/* Yenda Ads */}
-                  <ins
-                    className="adsbygoogle"
-                    style={{ display: "inline-block", width: "350px", height: "50px" }}
-                    data-ad-client="ca-pub-5039043071428597"
-                    data-ad-slot="2372308005"
-                  />
-                  <Script id="event-ad-top">{`(adsbygoogle = window.adsbygoogle || []).push({});`}</Script>
-                </div>
-              </div>
+              {/* Mobile-optimized ad after description */}
+              <GoogleAdSense />
 
               {/* Countdown Timer */}
               <div className="bg-[#b0468e]/5 rounded-lg p-4">
@@ -494,19 +483,8 @@ export default function EventDetailsPage() {
                 </div>
               </div>
 
-              {/* Ad before buttons - using 350x50 size */}
-              <div className="flex justify-center">
-                <div>
-                  {/* Yenda Ads */}
-                  <ins
-                    className="adsbygoogle"
-                    style={{ display: "inline-block", width: "350px", height: "50px" }}
-                    data-ad-client="ca-pub-5039043071428597"
-                    data-ad-slot="2372308005"
-                  />
-                  <Script id="event-ad-bottom">{`(adsbygoogle = window.adsbygoogle || []).push({});`}</Script>
-                </div>
-              </div>
+              {/* Mobile-optimized ad before buttons */}
+              <GoogleAdSense />
 
               <div className="flex flex-col sm:flex-row gap-3">
                 <Button

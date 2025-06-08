@@ -386,17 +386,17 @@ export default function EventDetailsPage() {
                 <p className="text-muted-foreground mt-2">{event.description}</p>
               </div>
 
-              {/* Ad after description - using raw HTML/JS approach */}
+              {/* Ad after description - using 350x50 size */}
               <div className="flex justify-center">
                 <div>
                   {/* Yenda Ads */}
                   <ins
                     className="adsbygoogle"
-                    style={{ display: "inline-block", width: "320px", height: "50px" }}
+                    style={{ display: "inline-block", width: "350px", height: "50px" }}
                     data-ad-client="ca-pub-5039043071428597"
                     data-ad-slot="2372308005"
                   />
-                  <Script id="ad-script-top">{`(adsbygoogle = window.adsbygoogle || []).push({});`}</Script>
+                  <Script id="event-ad-top">{`(adsbygoogle = window.adsbygoogle || []).push({});`}</Script>
                 </div>
               </div>
 
@@ -494,17 +494,17 @@ export default function EventDetailsPage() {
                 </div>
               </div>
 
-              {/* Ad before buttons - using raw HTML/JS approach */}
+              {/* Ad before buttons - using 350x50 size */}
               <div className="flex justify-center">
                 <div>
                   {/* Yenda Ads */}
                   <ins
                     className="adsbygoogle"
-                    style={{ display: "inline-block", width: "320px", height: "50px" }}
+                    style={{ display: "inline-block", width: "350px", height: "50px" }}
                     data-ad-client="ca-pub-5039043071428597"
                     data-ad-slot="2372308005"
                   />
-                  <Script id="ad-script-bottom">{`(adsbygoogle = window.adsbygoogle || []).push({});`}</Script>
+                  <Script id="event-ad-bottom">{`(adsbygoogle = window.adsbygoogle || []).push({});`}</Script>
                 </div>
               </div>
 

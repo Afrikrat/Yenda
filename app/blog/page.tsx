@@ -1,19 +1,15 @@
-"use client"
-
-import React from "react"
-import { useState, useEffect } from "react"
-import { Card, CardContent, CardFooter } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Calendar } from "lucide-react"
+import { Card, CardContent } from "@/components/ui/card"
+import { ArrowLeft, Calendar } from "lucide-react"
 import Image from "next/image"
 import Link from "next/link"
 import { supabase } from "@/lib/supabase/client"
-import Script from "next/script"
 
 interface BlogPost {
   id: string
   title: string
   slug: string
+  content: string
   excerpt: string | null
   created_at: string
   image_url: string | null
@@ -21,166 +17,99 @@ interface BlogPost {
   status: string
 }
 
-export default function BlogPage() {
-  const [posts, setPosts] = useState<BlogPost[]>([])
-  const [isLoading, setIsLoading] = useState(true)
+async function getBlogPosts(): Promise<BlogPost[]> {
+  try {
+    const { data, error } = await supabase
+      .from("blog_posts")
+      .select("*")
+      .eq("status", "published")
+      .order("created_at", { ascending: false })
 
-  useEffect(() => {
-    fetchPosts()
-  }, [])
-
-  const fetchPosts = async () => {
-    try {
-      const { data, error } = await supabase
-        .from("blog_posts")
-        .select("id, title, slug, excerpt, created_at, image_url, author, status")
-        .eq("status", "published") // Only show published posts
-        .order("created_at", { ascending: false })
-
-      if (error) {
-        console.error("Error fetching blog posts:", error)
-        throw error
-      }
-
-      setPosts(data || [])
-    } catch (error) {
+    if (error) {
       console.error("Error fetching blog posts:", error)
-    } finally {
-      setIsLoading(false)
+      return []
     }
-  }
 
-  if (isLoading) {
-    return (
-      <main className="flex flex-col min-h-screen">
-        <div className="container px-4 py-6 mx-auto">
-          <h1 className="text-2xl font-bold mb-6">Blog</h1>
-          <div className="flex justify-center items-center h-64">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#b0468e]"></div>
-          </div>
-        </div>
-      </main>
-    )
+    return data || []
+  } catch (error) {
+    console.error("Error fetching blog posts:", error)
+    return []
   }
+}
+
+export default async function BlogPage() {
+  const posts = await getBlogPosts()
 
   return (
-    <main className="flex flex-col min-h-screen">
-      <div className="container px-4 py-6 mx-auto">
-        <h1 className="text-2xl font-bold mb-6">Blog</h1>
-
-        {/* Top ad using raw HTML/JS approach */}
-        <div className="my-4 flex justify-center">
-          <div>
-            {/* Yenda Ads */}
-            <ins
-              className="adsbygoogle"
-              style={{ display: "inline-block", width: "320px", height: "50px" }}
-              data-ad-client="ca-pub-5039043071428597"
-              data-ad-slot="2372308005"
-            />
-            <Script id="ad-script-1">{`(adsbygoogle = window.adsbygoogle || []).push({});`}</Script>
-          </div>
+    <main className="flex flex-col min-h-screen pb-20">
+      <div className="relative h-32 sm:h-40 bg-gradient-to-r from-[#b0468e] to-pink-600">
+        <div className="absolute inset-0 bg-black/20" />
+        <Link href="/" className="absolute top-4 left-4 z-10">
+          <Button
+            variant="outline"
+            size="icon"
+            className="rounded-full bg-white/20 backdrop-blur-md border-white/30 text-white hover:bg-white/30"
+          >
+            <ArrowLeft className="h-5 w-5" />
+            <span className="sr-only">Back to Home</span>
+          </Button>
+        </Link>
+        <div className="container px-4 mx-auto h-full flex items-center justify-center">
+          <h1 className="text-3xl font-bold text-white text-center">Blog</h1>
         </div>
+      </div>
 
+      <div className="container px-4 mx-auto py-8">
         {posts.length === 0 ? (
           <div className="text-center py-12">
-            <h3 className="text-lg font-medium mb-2">No blog posts yet</h3>
-            <p className="text-muted-foreground">Check back later for new content!</p>
+            <h2 className="text-2xl font-bold mb-4">No blog posts yet</h2>
+            <p className="text-muted-foreground mb-6">Check back later for updates and stories.</p>
           </div>
         ) : (
-          <>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {posts.map((post, index) => (
-                <React.Fragment key={post.id}>
-                  <BlogCard post={post} />
-                  {/* Show ad after every 2nd post using raw HTML/JS approach */}
-                  {(index + 1) % 2 === 0 && index < posts.length - 1 && (
-                    <div className="md:col-span-2 flex justify-center my-4">
-                      <div>
-                        {/* Yenda Ads */}
-                        <ins
-                          className="adsbygoogle"
-                          style={{ display: "inline-block", width: "320px", height: "50px" }}
-                          data-ad-client="ca-pub-5039043071428597"
-                          data-ad-slot="2372308005"
-                        />
-                        <Script id={`ad-script-${index}`}>
-                          {`(adsbygoogle = window.adsbygoogle || []).push({});`}
-                        </Script>
-                      </div>
-                    </div>
-                  )}
-                </React.Fragment>
-              ))}
-            </div>
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+            {posts.map((post) => {
+              const postDate = new Date(post.created_at)
+              const formattedDate = postDate.toLocaleDateString("en-US", {
+                month: "short",
+                day: "numeric",
+                year: "numeric",
+              })
 
-            {/* Bottom ad using raw HTML/JS approach */}
-            <div className="mt-8 flex justify-center">
-              <div>
-                {/* Yenda Ads */}
-                <ins
-                  className="adsbygoogle"
-                  style={{ display: "inline-block", width: "320px", height: "50px" }}
-                  data-ad-client="ca-pub-5039043071428597"
-                  data-ad-slot="2372308005"
-                />
-                <Script id="ad-script-bottom">{`(adsbygoogle = window.adsbygoogle || []).push({});`}</Script>
-              </div>
-            </div>
-          </>
+              return (
+                <Card key={post.id} className="overflow-hidden hover:shadow-lg transition-shadow">
+                  <div className="relative h-48">
+                    <Image
+                      src={post.image_url || "/placeholder.svg?height=300&width=400"}
+                      alt={post.title}
+                      fill
+                      className="object-cover"
+                    />
+                  </div>
+                  <CardContent className="p-4">
+                    <div className="flex items-center text-sm text-muted-foreground mb-2">
+                      <Calendar className="h-4 w-4 mr-2" />
+                      <span>{formattedDate}</span>
+                      {post.author && (
+                        <>
+                          <span className="mx-2">•</span>
+                          <span>{post.author}</span>
+                        </>
+                      )}
+                    </div>
+                    <h3 className="font-bold text-lg mb-2 line-clamp-2">{post.title}</h3>
+                    {post.excerpt && <p className="text-muted-foreground text-sm line-clamp-3 mb-4">{post.excerpt}</p>}
+                    <Link href={`/blog/${post.slug}`}>
+                      <Button className="w-full bg-[#b0468e] text-white hover:opacity-90 transition-opacity">
+                        Read More
+                      </Button>
+                    </Link>
+                  </CardContent>
+                </Card>
+              )
+            })}
+          </div>
         )}
       </div>
     </main>
-  )
-}
-
-interface BlogCardProps {
-  post: BlogPost
-}
-
-function BlogCard({ post }: BlogCardProps) {
-  // Format date
-  const postDate = new Date(post.created_at)
-  const formattedDate = postDate.toLocaleDateString("en-US", {
-    month: "long",
-    day: "numeric",
-    year: "numeric",
-  })
-
-  return (
-    <Link href={`/blog/${post.slug}`}>
-      <Card className="overflow-hidden h-full hover:shadow-md transition-shadow animate-slide-up">
-        <div className="relative h-48">
-          <Image
-            src={post.image_url || "/placeholder.svg?height=400&width=600"}
-            alt={post.title}
-            fill
-            className="object-cover"
-          />
-        </div>
-
-        <CardContent className="p-6">
-          <div className="flex items-center text-sm text-muted-foreground mb-3">
-            <Calendar className="h-4 w-4 mr-2" />
-            <span>{formattedDate}</span>
-            {post.author && (
-              <>
-                <span className="mx-2">•</span>
-                <span>{post.author}</span>
-              </>
-            )}
-          </div>
-
-          <h2 className="text-xl font-bold mb-2">{post.title}</h2>
-          {post.excerpt && <p className="text-muted-foreground line-clamp-3">{post.excerpt}</p>}
-        </CardContent>
-
-        <CardFooter className="px-6 pb-6 pt-0">
-          <Button variant="outline" className="w-full">
-            Read More
-          </Button>
-        </CardFooter>
-      </Card>
-    </Link>
   )
 }

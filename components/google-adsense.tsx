@@ -34,10 +34,10 @@ export default function GoogleAdSense({ className = "" }) {
 
   return (
     <div className={`ad-container ${className}`} ref={adRef}>
-      {/* Using the exact code provided by Google */}
+      {/* Using 350x50 size as requested */}
       <ins
         className="adsbygoogle"
-        style={{ display: "inline-block", width: "320px", height: "50px" }}
+        style={{ display: "inline-block", width: "350px", height: "50px" }}
         data-ad-client="ca-pub-5039043071428597"
         data-ad-slot="2372308005"
       />

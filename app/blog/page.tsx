@@ -8,7 +8,7 @@ import { Calendar } from "lucide-react"
 import Image from "next/image"
 import Link from "next/link"
 import { supabase } from "@/lib/supabase/client"
-import GoogleAdSense from "@/components/google-adsense"
+import Script from "next/script"
 
 interface BlogPost {
   id: string
@@ -31,7 +31,6 @@ export default function BlogPage() {
 
   const fetchPosts = async () => {
     try {
-      console.log("Fetching blog posts...")
       const { data, error } = await supabase
         .from("blog_posts")
         .select("id, title, slug, excerpt, created_at, image_url, author, status")
@@ -43,7 +42,6 @@ export default function BlogPage() {
         throw error
       }
 
-      console.log("Blog posts data:", data)
       setPosts(data || [])
     } catch (error) {
       console.error("Error fetching blog posts:", error)
@@ -70,6 +68,20 @@ export default function BlogPage() {
       <div className="container px-4 py-6 mx-auto">
         <h1 className="text-2xl font-bold mb-6">Blog</h1>
 
+        {/* Top ad using raw HTML/JS approach */}
+        <div className="my-4 flex justify-center">
+          <div>
+            {/* Yenda Ads */}
+            <ins
+              className="adsbygoogle"
+              style={{ display: "inline-block", width: "320px", height: "50px" }}
+              data-ad-client="ca-pub-5039043071428597"
+              data-ad-slot="2372308005"
+            />
+            <Script id="ad-script-1">{`(adsbygoogle = window.adsbygoogle || []).push({});`}</Script>
+          </div>
+        </div>
+
         {posts.length === 0 ? (
           <div className="text-center py-12">
             <h3 className="text-lg font-medium mb-2">No blog posts yet</h3>
@@ -81,19 +93,39 @@ export default function BlogPage() {
               {posts.map((post, index) => (
                 <React.Fragment key={post.id}>
                   <BlogCard post={post} />
-                  {/* Show ad after every 2nd post - 320x50 size only */}
+                  {/* Show ad after every 2nd post using raw HTML/JS approach */}
                   {(index + 1) % 2 === 0 && index < posts.length - 1 && (
                     <div className="md:col-span-2 flex justify-center my-4">
-                      <GoogleAdSense adSlot="1234567890" />
+                      <div>
+                        {/* Yenda Ads */}
+                        <ins
+                          className="adsbygoogle"
+                          style={{ display: "inline-block", width: "320px", height: "50px" }}
+                          data-ad-client="ca-pub-5039043071428597"
+                          data-ad-slot="2372308005"
+                        />
+                        <Script id={`ad-script-${index}`}>
+                          {`(adsbygoogle = window.adsbygoogle || []).push({});`}
+                        </Script>
+                      </div>
                     </div>
                   )}
                 </React.Fragment>
               ))}
             </div>
 
-            {/* Google AdSense Ad at bottom - 320x50 size only */}
+            {/* Bottom ad using raw HTML/JS approach */}
             <div className="mt-8 flex justify-center">
-              <GoogleAdSense adSlot="your-blog-ad-slot-id-here" />
+              <div>
+                {/* Yenda Ads */}
+                <ins
+                  className="adsbygoogle"
+                  style={{ display: "inline-block", width: "320px", height: "50px" }}
+                  data-ad-client="ca-pub-5039043071428597"
+                  data-ad-slot="2372308005"
+                />
+                <Script id="ad-script-bottom">{`(adsbygoogle = window.adsbygoogle || []).push({});`}</Script>
+              </div>
             </div>
           </>
         )}

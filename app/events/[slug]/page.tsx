@@ -10,7 +10,7 @@ import Link from "next/link"
 import { useParams, useRouter } from "next/navigation"
 import { supabase } from "@/lib/supabase/client"
 import { useToast } from "@/components/ui/use-toast"
-import GoogleAdSense from "@/components/google-adsense"
+import Script from "next/script"
 
 interface Event {
   id: string
@@ -386,9 +386,18 @@ export default function EventDetailsPage() {
                 <p className="text-muted-foreground mt-2">{event.description}</p>
               </div>
 
-              {/* Ad after description - 320x50 only */}
+              {/* Ad after description - using raw HTML/JS approach */}
               <div className="flex justify-center">
-                <GoogleAdSense adSlot="1234567890" />
+                <div>
+                  {/* Yenda Ads */}
+                  <ins
+                    className="adsbygoogle"
+                    style={{ display: "inline-block", width: "320px", height: "50px" }}
+                    data-ad-client="ca-pub-5039043071428597"
+                    data-ad-slot="2372308005"
+                  />
+                  <Script id="ad-script-top">{`(adsbygoogle = window.adsbygoogle || []).push({});`}</Script>
+                </div>
               </div>
 
               {/* Countdown Timer */}
@@ -485,9 +494,18 @@ export default function EventDetailsPage() {
                 </div>
               </div>
 
-              {/* Ad before buttons - 320x50 only */}
+              {/* Ad before buttons - using raw HTML/JS approach */}
               <div className="flex justify-center">
-                <GoogleAdSense adSlot="1234567890" />
+                <div>
+                  {/* Yenda Ads */}
+                  <ins
+                    className="adsbygoogle"
+                    style={{ display: "inline-block", width: "320px", height: "50px" }}
+                    data-ad-client="ca-pub-5039043071428597"
+                    data-ad-slot="2372308005"
+                  />
+                  <Script id="ad-script-bottom">{`(adsbygoogle = window.adsbygoogle || []).push({});`}</Script>
+                </div>
               </div>
 
               <div className="flex flex-col sm:flex-row gap-3">

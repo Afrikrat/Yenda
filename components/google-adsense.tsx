@@ -2,7 +2,7 @@
 
 import { useEffect, useRef } from "react"
 
-export default function GoogleAdSense({ adSlot = "1234567890", className = "" }) {
+export default function GoogleAdSense({ className = "" }) {
   const adRef = useRef<HTMLDivElement>(null)
   const isInitialized = useRef(false)
 
@@ -15,36 +15,39 @@ export default function GoogleAdSense({ adSlot = "1234567890", className = "" })
     isInitialized.current = true
 
     try {
-      // Make sure the AdSense script is loaded
-      const checkAdSenseAndLoad = () => {
-        // @ts-ignore
+      // Push the ad when the component mounts
+      const pushAd = () => {
         if (window.adsbygoogle) {
-          try {
-            // @ts-ignore
-            ;(window.adsbygoogle = window.adsbygoogle || []).push({})
-          } catch (pushError) {
-            console.error("Error pushing ad:", pushError)
-          }
+          ;(window.adsbygoogle = window.adsbygoogle || []).push({})
         } else {
-          setTimeout(checkAdSenseAndLoad, 300)
+          // Retry if adsbygoogle isn't available yet
+          setTimeout(pushAd, 200)
         }
       }
 
-      // Start checking for AdSense
-      checkAdSenseAndLoad()
+      // Start trying to push the ad
+      pushAd()
     } catch (error) {
-      console.error("Error setting up AdSense:", error)
+      console.error("Error initializing ad:", error)
     }
-  }, [adSlot])
+  }, [])
 
   return (
-    <div className={`ad-container overflow-hidden flex justify-center ${className}`}>
+    <div className={`ad-container ${className}`} ref={adRef}>
+      {/* Using the exact code provided by Google */}
       <ins
         className="adsbygoogle"
         style={{ display: "inline-block", width: "320px", height: "50px" }}
         data-ad-client="ca-pub-5039043071428597"
-        data-ad-slot={adSlot}
+        data-ad-slot="2372308005"
       />
     </div>
   )
+}
+
+// Add TypeScript support for adsbygoogle
+declare global {
+  interface Window {
+    adsbygoogle: any[]
+  }
 }

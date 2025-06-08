@@ -32,21 +32,8 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
-        {/* Google AdSense Script - Placed in head for better initialization */}
+        {/* Google AdSense Script - Exactly as provided by Google */}
         <Script
-          id="adsbygoogle-init"
-          strategy="beforeInteractive"
-          dangerouslySetInnerHTML={{
-            __html: `
-              (adsbygoogle = window.adsbygoogle || []).push({
-                google_ad_client: "ca-pub-5039043071428597",
-                enable_page_level_ads: true
-              });
-            `,
-          }}
-        />
-        <Script
-          id="adsbygoogle-script"
           async
           src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5039043071428597"
           strategy="afterInteractive"

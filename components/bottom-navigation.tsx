@@ -83,6 +83,16 @@ export default function BottomNavigation() {
                 <span className="text-sm font-medium">Contact Us</span>
               </Link>
               <Link
+                href="/services"
+                className="flex flex-col items-center p-4 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 press-effect"
+                onClick={() => setOpen(false)}
+              >
+                <div className="w-12 h-12 rounded-full bg-[#b0468e]/10 dark:bg-[#b0468e]/20 flex items-center justify-center mb-2">
+                  <span className="text-[#b0468e] dark:text-[#b0468e] text-xl">S</span>
+                </div>
+                <span className="text-sm font-medium">Services</span>
+              </Link>
+              <Link
                 href="/terms"
                 className="flex flex-col items-center p-4 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 press-effect"
                 onClick={() => setOpen(false)}

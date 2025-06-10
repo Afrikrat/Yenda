@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from "react"
 import { Button } from "@/components/ui/button"
-import { ArrowRight, ArrowUp, ArrowDown, Heart, Share2, X } from "lucide-react"
+import { ArrowRight, ArrowUp, ArrowDown, Heart, Share2, X, Play, Pause } from "lucide-react"
 import Image from "next/image"
 import Link from "next/link"
 import { supabase } from "@/lib/supabase/client"
@@ -29,12 +29,59 @@ export default function StoriesPage() {
   const [currentIndex, setCurrentIndex] = useState(0)
   const [isLoading, setIsLoading] = useState(true)
   const [liked, setLiked] = useState<Record<string, boolean>>({})
+  const [isPlaying, setIsPlaying] = useState(true)
+  const [progress, setProgress] = useState(0)
   const { toast } = useToast()
   const storyContainerRef = useRef<HTMLDivElement>(null)
+  const progressIntervalRef = useRef<NodeJS.Timeout | null>(null)
+  const autoAdvanceTimeoutRef = useRef<NodeJS.Timeout | null>(null)
+
+  const STORY_DURATION = 5000 // 5 seconds per story
 
   useEffect(() => {
     fetchStories()
   }, [])
+
+  useEffect(() => {
+    if (stories.length > 0 && isPlaying) {
+      startStoryTimer()
+    } else {
+      stopStoryTimer()
+    }
+
+    return () => {
+      stopStoryTimer()
+    }
+  }, [currentIndex, stories.length, isPlaying])
+
+  const startStoryTimer = () => {
+    stopStoryTimer()
+    setProgress(0)
+
+    // Progress bar animation
+    progressIntervalRef.current = setInterval(() => {
+      setProgress((prev) => {
+        const newProgress = prev + 100 / (STORY_DURATION / 100)
+        return newProgress >= 100 ? 100 : newProgress
+      })
+    }, 100)
+
+    // Auto advance to next story
+    autoAdvanceTimeoutRef.current = setTimeout(() => {
+      nextStory()
+    }, STORY_DURATION)
+  }
+
+  const stopStoryTimer = () => {
+    if (progressIntervalRef.current) {
+      clearInterval(progressIntervalRef.current)
+      progressIntervalRef.current = null
+    }
+    if (autoAdvanceTimeoutRef.current) {
+      clearTimeout(autoAdvanceTimeoutRef.current)
+      autoAdvanceTimeoutRef.current = null
+    }
+  }
 
   const fetchStories = async () => {
     setIsLoading(true)
@@ -70,6 +117,9 @@ export default function StoriesPage() {
   const nextStory = () => {
     if (currentIndex < stories.length - 1) {
       setCurrentIndex(currentIndex + 1)
+    } else {
+      // Loop back to first story or exit
+      setCurrentIndex(0)
     }
   }
 
@@ -77,6 +127,10 @@ export default function StoriesPage() {
     if (currentIndex > 0) {
       setCurrentIndex(currentIndex - 1)
     }
+  }
+
+  const togglePlayPause = () => {
+    setIsPlaying(!isPlaying)
   }
 
   const toggleLike = (storyId: string) => {
@@ -94,7 +148,6 @@ export default function StoriesPage() {
         url: window.location.href,
       })
     } else {
-      // Fallback for browsers that don't support the Web Share API
       navigator.clipboard.writeText(window.location.href)
       toast({
         title: "Link copied",
@@ -106,6 +159,7 @@ export default function StoriesPage() {
   const handlers = useSwipeable({
     onSwipedUp: nextStory,
     onSwipedDown: prevStory,
+    onTap: togglePlayPause,
     preventDefaultTouchmoveEvent: true,
     trackMouse: true,
   })
@@ -150,27 +204,40 @@ export default function StoriesPage() {
           <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-transparent to-black/70" />
         </div>
 
-        {/* Story Progress Bar */}
+        {/* Story Progress Bars */}
         <div className="absolute top-0 left-0 right-0 z-10 p-2 flex gap-1">
           {stories.map((_, index) => (
             <div key={index} className="h-1 bg-white/30 rounded-full flex-1 overflow-hidden">
               <div
-                className={`h-full bg-white ${index === currentIndex ? "animate-progress" : index < currentIndex ? "w-full" : "w-0"}`}
+                className={`h-full bg-white transition-all duration-100 ${
+                  index === currentIndex ? `w-[${progress}%]` : index < currentIndex ? "w-full" : "w-0"
+                }`}
+                style={index === currentIndex ? { width: `${progress}%` } : {}}
               />
             </div>
           ))}
         </div>
 
-        {/* Close Button */}
-        <Link href="/" className="absolute top-4 right-4 z-10">
+        {/* Controls */}
+        <div className="absolute top-4 right-4 z-10 flex gap-2">
           <Button
             variant="outline"
             size="icon"
             className="rounded-full bg-black/20 backdrop-blur-md border-white/30 text-white hover:bg-black/30"
+            onClick={togglePlayPause}
           >
-            <X className="h-5 w-5" />
+            {isPlaying ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
           </Button>
-        </Link>
+          <Link href="/">
+            <Button
+              variant="outline"
+              size="icon"
+              className="rounded-full bg-black/20 backdrop-blur-md border-white/30 text-white hover:bg-black/30"
+            >
+              <X className="h-5 w-5" />
+            </Button>
+          </Link>
+        </div>
 
         {/* Navigation Arrows */}
         <button
@@ -239,26 +306,14 @@ export default function StoriesPage() {
           </Button>
         </div>
 
-        {/* Swipe Indicator */}
-        <div className="absolute bottom-28 left-1/2 transform -translate-x-1/2 text-white/50 text-xs flex flex-col items-center">
-          <ArrowUp className="h-4 w-4 animate-bounce" />
-          <span>Swipe for more</span>
-        </div>
+        {/* Tap to pause indicator */}
+        {!isPlaying && (
+          <div className="absolute bottom-28 left-1/2 transform -translate-x-1/2 text-white/70 text-sm flex flex-col items-center">
+            <Play className="h-6 w-6 mb-1" />
+            <span>Tap to resume</span>
+          </div>
+        )}
       </div>
-
-      <style jsx global>{`
-        @keyframes progress {
-          from { width: 0; }
-          to { width: 100%; }
-        }
-        .animate-progress {
-          animation: progress 5s linear;
-          width: 100%;
-        }
-        body {
-          overflow: hidden;
-        }
-      `}</style>
     </main>
   )
 }

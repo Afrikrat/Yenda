@@ -1,6 +1,7 @@
 import type { Metadata } from "next"
 import { notFound } from "next/navigation"
 import { supabase } from "@/lib/supabase/client"
+import { getPublicImageUrl, getOptimizedImageUrl } from "@/lib/image-utils"
 import EventDetailsClient from "./event-details-client"
 
 interface Event {
@@ -93,31 +94,54 @@ export async function generateMetadata({ params }: { params: { slug: string } })
     hour12: true,
   })
 
-  const description = `${event.description} | ${formattedDate} at ${eventTime} | ${event.location}`
+  const description = `Join us for ${event.title} on ${formattedDate} at ${eventTime}. ${event.description} Location: ${event.location}`
+
+  // Get proper public image URL
+  const imageUrl = event.image_url
+    ? getPublicImageUrl(event.image_url)
+    : `${process.env.NEXT_PUBLIC_SITE_URL || "https://yenda.vercel.app"}/images/yenda-logo.png`
+  const optimizedImageUrl = getOptimizedImageUrl(imageUrl, 1200, 630)
 
   return {
-    title: `${event.title} - Yenda`,
+    title: `${event.title} - Yenda Events`,
     description: description,
+    keywords: `event, ${event.title}, ${event.location}, ${formattedDate}`,
+    authors: [{ name: event.organizer || "Yenda Events" }],
     openGraph: {
       title: event.title,
       description: description,
       type: "article",
       publishedTime: event.date,
+      url: `${process.env.NEXT_PUBLIC_SITE_URL || "https://yenda.vercel.app"}/events/${event.slug}`,
       images: [
         {
-          url: event.image_url || "/images/yenda-logo.png",
+          url: optimizedImageUrl,
           width: 1200,
           height: 630,
           alt: event.title,
+          type: "image/jpeg",
+        },
+        {
+          url: imageUrl,
+          width: 800,
+          height: 600,
+          alt: event.title,
+          type: "image/jpeg",
         },
       ],
       siteName: "Yenda",
+      locale: "en_US",
     },
     twitter: {
       card: "summary_large_image",
       title: event.title,
       description: description,
-      images: [event.image_url || "/images/yenda-logo.png"],
+      images: [optimizedImageUrl],
+      creator: "@yendaapp",
+      site: "@yendaapp",
+    },
+    alternates: {
+      canonical: `${process.env.NEXT_PUBLIC_SITE_URL || "https://yenda.vercel.app"}/events/${event.slug}`,
     },
   }
 }

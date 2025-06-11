@@ -4,13 +4,15 @@ import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
-import { ArrowLeft, Calendar, Clock, MapPin, Share2, Heart, Users, ThumbsUp } from "lucide-react"
+import { ArrowLeft, Calendar, Clock, MapPin, Heart, Users, ThumbsUp } from "lucide-react"
 import Image from "next/image"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { supabase } from "@/lib/supabase/client"
 import { useToast } from "@/components/ui/use-toast"
+import { getPublicImageUrl } from "@/lib/image-utils"
 import GoogleAdSense from "@/components/google-adsense"
+import EnhancedShare from "@/components/enhanced-share"
 
 interface Event {
   id: string
@@ -254,23 +256,6 @@ export default function EventDetailsClient({ event, category, town }: EventDetai
     window.open(googleCalendarUrl, "_blank")
   }
 
-  const shareEvent = () => {
-    if (navigator.share) {
-      navigator.share({
-        title: event?.title,
-        text: event?.description,
-        url: window.location.href,
-      })
-    } else {
-      // Fallback for browsers that don't support the Web Share API
-      navigator.clipboard.writeText(window.location.href)
-      toast({
-        title: "Link copied",
-        description: "Event link copied to clipboard",
-      })
-    }
-  }
-
   // Format date
   const eventDate = new Date(event.date)
   const formattedDate = eventDate.toLocaleDateString("en-US", {
@@ -280,11 +265,19 @@ export default function EventDetailsClient({ event, category, town }: EventDetai
     day: "numeric",
   })
 
+  // Prepare share data
+  const shareData = {
+    title: event.title,
+    text: `Join us for ${event.title} on ${formattedDate}! ${event.description}`,
+    url: typeof window !== "undefined" ? window.location.href : "",
+    image: event.image_url ? getPublicImageUrl(event.image_url) : null,
+  }
+
   return (
     <main className="pb-20">
       <div className="relative h-64 sm:h-80 md:h-96">
         <Image
-          src={event.image_url || "/placeholder.svg?height=800&width=600"}
+          src={event.image_url ? getPublicImageUrl(event.image_url) : "/placeholder.svg?height=800&width=600"}
           alt={event.title}
           fill
           className="object-cover"
@@ -409,7 +402,7 @@ export default function EventDetailsClient({ event, category, town }: EventDetai
                   </div>
                   <div>
                     <p className="text-sm font-medium">Contact</p>
-                    <p className="text-sm text-muted-foreground">{event.phone || "N/A"}</p>
+                    <p className="text-sm text-muted-foreground">{event.phone || "Contact organizer"}</p>
                   </div>
                 </div>
               </div>
@@ -445,10 +438,7 @@ export default function EventDetailsClient({ event, category, town }: EventDetai
                   <span className="sr-only">Save</span>
                 </Button>
 
-                <Button variant="outline" size="icon" className="rounded-full" onClick={shareEvent}>
-                  <Share2 className="h-4 w-4" />
-                  <span className="sr-only">Share</span>
-                </Button>
+                <EnhancedShare shareData={shareData} />
               </div>
             </div>
           </CardContent>

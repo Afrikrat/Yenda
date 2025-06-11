@@ -93,7 +93,7 @@ export default function HomePage() {
           onCategoryChange={setSelectedCategory}
         />
 
-        {/* All Events */}
+        {/* All Events - NO ADS ON HOMEPAGE */}
         <section>
           <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
             {searchQuery || selectedCategory !== "all" ? "Search Results" : "All Events"}

@@ -33,7 +33,7 @@ export default function GoogleAdSense({ className = "" }) {
   }, [])
 
   return (
-    <div className={`ad-container flex justify-center ${className}`}>
+    <div className={`ad-container flex justify-center my-4 ${className}`}>
       {/* Fixed 350x50 size ad */}
       <ins
         className="adsbygoogle"

@@ -3,9 +3,9 @@ import { Phone, MapPin, Palette, Globe, Smartphone, BarChart, Briefcase, Code, L
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 
 export const metadata: Metadata = {
-  title: "Our Services | Yenda",
+  title: "Our Services | Westlert Digitals - Yenda",
   description:
-    "Professional services including graphic design, web development, mobile app creation, digital marketing, branding, and more.",
+    "Westlert Digitals offers professional services including graphic design, web development, mobile app creation, digital marketing, branding, and more.",
 }
 
 export default function ServicesPage() {
@@ -70,10 +70,14 @@ export default function ServicesPage() {
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <h1 className="text-3xl font-bold text-center mb-2">Our Services</h1>
-      <p className="text-center text-gray-600 dark:text-gray-300 mb-8">
-        Professional digital solutions to help your business grow
-      </p>
+      {/* Business Header */}
+      <div className="text-center mb-8">
+        <h1 className="text-4xl font-bold text-[#b0468e] mb-2">Westlert Digitals</h1>
+        <h2 className="text-2xl font-semibold mb-2">Our Services</h2>
+        <p className="text-gray-600 dark:text-gray-300">
+          Professional digital solutions to help your business grow and succeed
+        </p>
+      </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
         {services.map((service, index) => (
@@ -99,7 +103,8 @@ export default function ServicesPage() {
 
       <Card className="mb-8 bg-gradient-to-r from-[#b0468e]/10 to-purple-100 dark:from-[#b0468e]/20 dark:to-purple-900/20">
         <CardHeader>
-          <CardTitle className="text-2xl">Contact Information</CardTitle>
+          <CardTitle className="text-2xl">Contact Westlert Digitals</CardTitle>
+          <CardDescription>Get in touch with us for professional digital services</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="flex items-center gap-3">
@@ -120,12 +125,12 @@ export default function ServicesPage() {
       </Card>
 
       <div className="text-center">
-        <p className="mb-4">Need more information about our services?</p>
+        <p className="mb-4">Ready to take your business to the next level?</p>
         <a
           href="/contact"
           className="inline-block px-6 py-3 bg-[#b0468e] text-white rounded-full hover:bg-[#b0468e]/90 transition-colors"
         >
-          Contact Us
+          Contact Westlert Digitals
         </a>
       </div>
     </div>

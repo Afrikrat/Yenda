@@ -5,7 +5,7 @@ import { supabase } from "@/lib/supabase/client"
 import Header from "@/components/header"
 import SearchBar from "@/components/search-bar"
 import FeaturedEventsCarousel from "@/components/featured-events-carousel"
-import EventsList from "@/components/events-list"
+import HomepageEventsList from "@/components/homepage-events-list"
 
 interface Event {
   id: string
@@ -93,12 +93,12 @@ export default function HomePage() {
           onCategoryChange={setSelectedCategory}
         />
 
-        {/* All Events - NO ADS ON HOMEPAGE */}
+        {/* All Events - Using the special ad-free version */}
         <section>
           <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
             {searchQuery || selectedCategory !== "all" ? "Search Results" : "All Events"}
           </h2>
-          <EventsList initialEvents={filteredEvents} />
+          <HomepageEventsList initialEvents={filteredEvents} />
         </section>
       </main>
     </div>

@@ -4,7 +4,8 @@ import { Button } from "@/components/ui/button"
 import { ArrowLeft, Calendar, Share2 } from "lucide-react"
 import Image from "next/image"
 import Link from "next/link"
-import { notFound } from "next/navigation"
+import { useState } from "react"
+import { useToast } from "@/components/ui/use-toast"
 import GoogleAdSense from "@/components/google-adsense"
 
 interface BlogPost {
@@ -19,14 +20,13 @@ interface BlogPost {
   status: string
 }
 
-interface BlogPostPageProps {
-  post: BlogPost | null
+interface BlogPostClientPageProps {
+  post: BlogPost
 }
 
-export default function BlogPostClientPage({ post }: BlogPostPageProps) {
-  if (!post) {
-    return notFound()
-  }
+export default function BlogPostClientPage({ post }: BlogPostClientPageProps) {
+  const { toast } = useToast()
+  const [isSharing, setIsSharing] = useState(false)
 
   // Format date
   const postDate = new Date(post.created_at)
@@ -36,15 +36,26 @@ export default function BlogPostClientPage({ post }: BlogPostPageProps) {
     year: "numeric",
   })
 
-  const sharePost = () => {
-    if (navigator.share) {
-      navigator.share({
-        title: post.title,
-        text: post.excerpt || post.content.substring(0, 160).replace(/<[^>]*>/g, ""),
-        url: window.location.href,
-      })
-    } else {
-      navigator.clipboard.writeText(window.location.href)
+  const handleShare = async () => {
+    setIsSharing(true)
+    try {
+      if (navigator.share) {
+        await navigator.share({
+          title: post.title,
+          text: post.excerpt || "",
+          url: window.location.href,
+        })
+      } else {
+        await navigator.clipboard.writeText(window.location.href)
+        toast({
+          title: "Link copied",
+          description: "Blog post link copied to clipboard",
+        })
+      }
+    } catch (error) {
+      console.error("Error sharing:", error)
+    } finally {
+      setIsSharing(false)
     }
   }
 
@@ -87,17 +98,13 @@ export default function BlogPostClientPage({ post }: BlogPostPageProps) {
 
             <h1 className="text-3xl font-bold mb-6">{post.title}</h1>
 
-            {/* Mobile-optimized ad after title */}
-            <div className="my-6">
-              <GoogleAdSense />
-            </div>
+            {/* First Ad after title - 350x50 size only */}
+            <GoogleAdSense />
 
             <div className="prose dark:prose-invert max-w-none" dangerouslySetInnerHTML={{ __html: post.content }} />
 
-            {/* Mobile-optimized ad after content */}
-            <div className="my-8">
-              <GoogleAdSense />
-            </div>
+            {/* Second Ad after content - 350x50 size only */}
+            <GoogleAdSense />
 
             <div className="mt-10 flex justify-between items-center">
               <div className="flex items-center gap-3">
@@ -115,7 +122,7 @@ export default function BlogPostClientPage({ post }: BlogPostPageProps) {
                 </div>
               </div>
 
-              <Button variant="outline" size="icon" className="rounded-full" onClick={sharePost}>
+              <Button variant="outline" size="icon" className="rounded-full" onClick={handleShare} disabled={isSharing}>
                 <Share2 className="h-4 w-4" />
                 <span className="sr-only">Share</span>
               </Button>

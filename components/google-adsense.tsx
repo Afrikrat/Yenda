@@ -44,6 +44,8 @@ export default function GoogleAdSense({ className = "" }) {
         }}
         data-ad-client="ca-pub-5039043071428597"
         data-ad-slot="2372308005"
+        data-ad-format="horizontal"
+        data-full-width-responsive="false"
       />
     </div>
   )

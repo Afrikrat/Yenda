@@ -59,15 +59,14 @@ export default function EventDetailsClient({ event, category, town }: EventDetai
   useEffect(() => {
     checkUser()
     fetchAttendees()
-  }, [])
+    updateCountdown()
 
-  useEffect(() => {
     const interval = setInterval(() => {
       updateCountdown()
     }, 1000)
 
     return () => clearInterval(interval)
-  }, [event])
+  }, [])
 
   const checkUser = async () => {
     try {
@@ -83,32 +82,6 @@ export default function EventDetailsClient({ event, category, town }: EventDetai
     }
   }
 
-  const checkUserInteractions = async (userId: string) => {
-    try {
-      // Check if user has saved this event
-      const { data: savedData } = await supabase
-        .from("saved_events")
-        .select("*")
-        .eq("user_id", userId)
-        .eq("event_id", event.id)
-        .single()
-
-      setIsSaved(!!savedData)
-
-      // Check if user has RSVP'd to this event
-      const { data: rsvpData } = await supabase
-        .from("rsvps")
-        .select("*")
-        .eq("user_id", userId)
-        .eq("event_id", event.id)
-        .single()
-
-      setHasRsvpd(!!rsvpData)
-    } catch (error) {
-      console.error("Error checking user interactions:", error)
-    }
-  }
-
   const fetchAttendees = async () => {
     try {
       const { count } = await supabase
@@ -119,6 +92,32 @@ export default function EventDetailsClient({ event, category, town }: EventDetai
       setAttendees(count || 0)
     } catch (error) {
       console.error("Error fetching attendees:", error)
+    }
+  }
+
+  const checkUserInteractions = async (uid: string) => {
+    try {
+      // Check if user has saved this event
+      const { data: savedData } = await supabase
+        .from("saved_events")
+        .select("*")
+        .eq("user_id", uid)
+        .eq("event_id", event.id)
+        .single()
+
+      setIsSaved(!!savedData)
+
+      // Check if user has RSVP'd to this event
+      const { data: rsvpData } = await supabase
+        .from("rsvps")
+        .select("*")
+        .eq("user_id", uid)
+        .eq("event_id", event.id)
+        .single()
+
+      setHasRsvpd(!!rsvpData)
+    } catch (error) {
+      console.error("Error checking user interactions:", error)
     }
   }
 
@@ -146,13 +145,15 @@ export default function EventDetailsClient({ event, category, town }: EventDetai
         title: "Sign in required",
         description: "Please sign in to RSVP to this event.",
       })
-      router.push(`/login?redirect=/events/${event.slug}`)
+      router.push(`/login?redirect=/events/${event?.slug}`)
       return
     }
 
     setIsSubmittingRsvp(true)
     try {
+      // Check if already RSVP'd
       if (hasRsvpd) {
+        // Remove RSVP
         const { error } = await supabase.from("rsvps").delete().eq("user_id", userId).eq("event_id", event.id)
 
         if (error) throw error
@@ -164,6 +165,7 @@ export default function EventDetailsClient({ event, category, town }: EventDetai
         setHasRsvpd(false)
         setAttendees(attendees - 1)
       } else {
+        // Add RSVP
         const { error } = await supabase.from("rsvps").insert({
           event_id: event.id,
           user_id: userId,
@@ -197,12 +199,13 @@ export default function EventDetailsClient({ event, category, town }: EventDetai
         title: "Sign in required",
         description: "Please sign in to save events.",
       })
-      router.push(`/login?redirect=/events/${event.slug}`)
+      router.push(`/login?redirect=/events/${event?.slug}`)
       return
     }
 
     try {
       if (isSaved) {
+        // Remove from saved
         const { error } = await supabase.from("saved_events").delete().eq("user_id", userId).eq("event_id", event.id)
 
         if (error) throw error
@@ -212,6 +215,7 @@ export default function EventDetailsClient({ event, category, town }: EventDetai
           description: "Event removed from your saved list",
         })
       } else {
+        // Add to saved
         const { error } = await supabase.from("saved_events").insert({
           event_id: event.id,
           user_id: userId,
@@ -237,7 +241,7 @@ export default function EventDetailsClient({ event, category, town }: EventDetai
 
   const addToCalendar = () => {
     const eventDateTime = new Date(`${event.date}T${event.time}`)
-    const endDateTime = new Date(eventDateTime.getTime() + 2 * 60 * 60 * 1000)
+    const endDateTime = new Date(eventDateTime.getTime() + 2 * 60 * 60 * 1000) // Add 2 hours
 
     const googleCalendarUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(
       event.title,
@@ -253,11 +257,12 @@ export default function EventDetailsClient({ event, category, town }: EventDetai
   const shareEvent = () => {
     if (navigator.share) {
       navigator.share({
-        title: event.title,
-        text: event.description,
+        title: event?.title,
+        text: event?.description,
         url: window.location.href,
       })
     } else {
+      // Fallback for browsers that don't support the Web Share API
       navigator.clipboard.writeText(window.location.href)
       toast({
         title: "Link copied",
@@ -312,7 +317,7 @@ export default function EventDetailsClient({ event, category, town }: EventDetai
                 <p className="text-muted-foreground mt-2">{event.description}</p>
               </div>
 
-              {/* Mobile-optimized ad after description */}
+              {/* First Ad - After description - 350x50 only */}
               <GoogleAdSense />
 
               {/* Countdown Timer */}
@@ -404,12 +409,12 @@ export default function EventDetailsClient({ event, category, town }: EventDetai
                   </div>
                   <div>
                     <p className="text-sm font-medium">Contact</p>
-                    <p className="text-sm text-muted-foreground">{event.phone || "Contact organizer"}</p>
+                    <p className="text-sm text-muted-foreground">{event.phone || "N/A"}</p>
                   </div>
                 </div>
               </div>
 
-              {/* Mobile-optimized ad before buttons */}
+              {/* Second Ad - Before buttons - 350x50 only */}
               <GoogleAdSense />
 
               <div className="flex flex-col sm:flex-row gap-3">

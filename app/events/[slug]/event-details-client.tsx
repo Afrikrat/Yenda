@@ -4,7 +4,7 @@ import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
-import { ArrowLeft, Calendar, Clock, MapPin, Heart, Users, ThumbsUp } from "lucide-react"
+import { ArrowLeft, Calendar, Clock, MapPin, Share2, Heart, Users, ThumbsUp } from "lucide-react"
 import Image from "next/image"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
@@ -12,7 +12,6 @@ import { supabase } from "@/lib/supabase/client"
 import { useToast } from "@/components/ui/use-toast"
 import { getPublicImageUrl } from "@/lib/image-utils"
 import GoogleAdSense from "@/components/google-adsense"
-import EnhancedShare from "@/components/enhanced-share"
 
 interface Event {
   id: string
@@ -57,11 +56,17 @@ export default function EventDetailsClient({ event, category, town }: EventDetai
   const [isSaved, setIsSaved] = useState(false)
   const [hasRsvpd, setHasRsvpd] = useState(false)
   const [userId, setUserId] = useState<string | null>(null)
+  const [currentUrl, setCurrentUrl] = useState("")
 
   useEffect(() => {
     checkUser()
     fetchAttendees()
     updateCountdown()
+
+    // Set current URL for sharing
+    if (typeof window !== "undefined") {
+      setCurrentUrl(window.location.href)
+    }
 
     const interval = setInterval(() => {
       updateCountdown()
@@ -265,13 +270,8 @@ export default function EventDetailsClient({ event, category, town }: EventDetai
     day: "numeric",
   })
 
-  // Prepare share data
-  const shareData = {
-    title: event.title,
-    text: `Join us for ${event.title} on ${formattedDate}! ${event.description}`,
-    url: typeof window !== "undefined" ? window.location.href : "",
-    image: event.image_url ? getPublicImageUrl(event.image_url) : null,
-  }
+  // Get image URL for sharing
+  const imageUrl = event.image_url ? getPublicImageUrl(event.image_url) : null
 
   return (
     <main className="pb-20">
@@ -438,7 +438,40 @@ export default function EventDetailsClient({ event, category, town }: EventDetai
                   <span className="sr-only">Save</span>
                 </Button>
 
-                <EnhancedShare shareData={shareData} />
+                <Button
+                  variant="outline"
+                  size="icon"
+                  className="rounded-full"
+                  onClick={() => {
+                    if (navigator.share) {
+                      navigator
+                        .share({
+                          title: event.title,
+                          text: `Check out this event: ${event.title}`,
+                          url: currentUrl,
+                        })
+                        .catch((err) => {
+                          if (err.name !== "AbortError") {
+                            console.error("Error sharing:", err)
+                            navigator.clipboard.writeText(currentUrl)
+                            toast({
+                              title: "Link copied",
+                              description: "Event link copied to clipboard",
+                            })
+                          }
+                        })
+                    } else {
+                      navigator.clipboard.writeText(currentUrl)
+                      toast({
+                        title: "Link copied",
+                        description: "Event link copied to clipboard",
+                      })
+                    }
+                  }}
+                >
+                  <Share2 className="h-4 w-4" />
+                  <span className="sr-only">Share</span>
+                </Button>
               </div>
             </div>
           </CardContent>

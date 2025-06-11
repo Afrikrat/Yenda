@@ -1,6 +1,6 @@
 export function getPublicImageUrl(imageUrl: string | null): string {
   if (!imageUrl) {
-    return "/images/yenda-logo.png" // Fallback to logo
+    return `${process.env.NEXT_PUBLIC_SITE_URL || "https://yenda.vercel.app"}/images/yenda-logo.png` // Fallback to logo
   }
 
   // If it's already a full URL, return as is
@@ -16,18 +16,18 @@ export function getPublicImageUrl(imageUrl: string | null): string {
 
   // If it's a relative path, make it absolute
   if (imageUrl.startsWith("/")) {
-    return imageUrl
+    return `${process.env.NEXT_PUBLIC_SITE_URL || "https://yenda.vercel.app"}${imageUrl}`
   }
 
   // Default fallback
-  return "/images/yenda-logo.png"
+  return `${process.env.NEXT_PUBLIC_SITE_URL || "https://yenda.vercel.app"}/images/yenda-logo.png`
 }
 
 export function getOptimizedImageUrl(imageUrl: string | null, width = 1200, height = 630): string {
   const publicUrl = getPublicImageUrl(imageUrl)
 
   // If it's a Supabase image, we can add transformation parameters
-  if (publicUrl.includes("supabase")) {
+  if (publicUrl.includes("supabase") && publicUrl.includes("/storage/")) {
     return `${publicUrl}?width=${width}&height=${height}&resize=cover&quality=80`
   }
 
@@ -53,6 +53,7 @@ export function getImageDimensions(imageUrl: string): Promise<{ width: number; h
     img.onerror = () => {
       reject(new Error("Failed to load image"))
     }
+    img.crossOrigin = "anonymous"
     img.src = imageUrl
   })
 }

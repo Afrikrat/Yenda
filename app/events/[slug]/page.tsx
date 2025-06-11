@@ -1,7 +1,6 @@
 import type { Metadata } from "next"
 import { notFound } from "next/navigation"
 import { supabase } from "@/lib/supabase/client"
-import { getPublicImageUrl, getOptimizedImageUrl } from "@/lib/image-utils"
 import EventDetailsClient from "./event-details-client"
 
 interface Event {
@@ -70,6 +69,32 @@ async function getTown(townId: string): Promise<Town | null> {
   }
 }
 
+// Helper function to get absolute URL for images
+function getAbsoluteImageUrl(imageUrl: string | null): string {
+  if (!imageUrl) {
+    return `${process.env.NEXT_PUBLIC_SITE_URL || "https://yenda.vercel.app"}/images/yenda-logo.png`
+  }
+
+  // If it's already a full URL, return as is
+  if (imageUrl.startsWith("http")) {
+    return imageUrl
+  }
+
+  // If it's a Supabase storage path, convert to public URL
+  if (imageUrl.startsWith("events/") || imageUrl.startsWith("blog/") || imageUrl.startsWith("stories/")) {
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+    return `${supabaseUrl}/storage/v1/object/public/images/${imageUrl}`
+  }
+
+  // If it's a relative path, make it absolute
+  if (imageUrl.startsWith("/")) {
+    return `${process.env.NEXT_PUBLIC_SITE_URL || "https://yenda.vercel.app"}${imageUrl}`
+  }
+
+  // Default fallback
+  return `${process.env.NEXT_PUBLIC_SITE_URL || "https://yenda.vercel.app"}/images/yenda-logo.png`
+}
+
 export async function generateMetadata({ params }: { params: { slug: string } }): Promise<Metadata> {
   const event = await getEvent(params.slug)
 
@@ -96,11 +121,8 @@ export async function generateMetadata({ params }: { params: { slug: string } })
 
   const description = `Join us for ${event.title} on ${formattedDate} at ${eventTime}. ${event.description} Location: ${event.location}`
 
-  // Get proper public image URL
-  const imageUrl = event.image_url
-    ? getPublicImageUrl(event.image_url)
-    : `${process.env.NEXT_PUBLIC_SITE_URL || "https://yenda.vercel.app"}/images/yenda-logo.png`
-  const optimizedImageUrl = getOptimizedImageUrl(imageUrl, 1200, 630)
+  // Get absolute image URL
+  const imageUrl = getAbsoluteImageUrl(event.image_url)
 
   return {
     title: `${event.title} - Yenda Events`,
@@ -115,18 +137,10 @@ export async function generateMetadata({ params }: { params: { slug: string } })
       url: `${process.env.NEXT_PUBLIC_SITE_URL || "https://yenda.vercel.app"}/events/${event.slug}`,
       images: [
         {
-          url: optimizedImageUrl,
+          url: imageUrl,
           width: 1200,
           height: 630,
           alt: event.title,
-          type: "image/jpeg",
-        },
-        {
-          url: imageUrl,
-          width: 800,
-          height: 600,
-          alt: event.title,
-          type: "image/jpeg",
         },
       ],
       siteName: "Yenda",
@@ -136,7 +150,7 @@ export async function generateMetadata({ params }: { params: { slug: string } })
       card: "summary_large_image",
       title: event.title,
       description: description,
-      images: [optimizedImageUrl],
+      images: [imageUrl],
       creator: "@yendaapp",
       site: "@yendaapp",
     },
